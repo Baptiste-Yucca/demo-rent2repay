@@ -65,16 +65,16 @@ export default function Bot() {
   const selectedTokenInfo = REPAYMENT_TOKENS.find(token => token.address === selectedToken);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Bot - Rent2Repay Execution</h2>
+    <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
+      <h2 className="text-2xl font-bold text-white mb-6">Bot - Rent2Repay Execution</h2>
       
       <div className="space-y-8">
         {/* Single User Repayment */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Single User Repayment</h3>
+          <h3 className="text-lg font-semibold text-gray-200 mb-4">Single User Repayment</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
                 User Address
               </label>
               <input
@@ -82,13 +82,13 @@ export default function Bot() {
                 value={userAddress}
                 onChange={(e) => setUserAddress(e.target.value)}
                 placeholder="0x..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
                 Repayment Token
               </label>
               <div className="space-y-2">
@@ -102,7 +102,7 @@ export default function Bot() {
                       onChange={(e) => setSelectedToken(e.target.value)}
                       className="mr-2"
                     />
-                    <span className="text-sm">
+                    <span className="text-sm text-gray-200">
                       {token.symbol} ({token.address})
                     </span>
                   </label>
@@ -121,11 +121,11 @@ export default function Bot() {
         </div>
 
         {/* Batch Repayment */}
-        <div className="border-t pt-8">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Batch User Repayment</h3>
+        <div className="border-t border-gray-600 pt-8">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4">Batch User Repayment</h3>
           <form onSubmit={handleBatchSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
                 User Addresses (comma-separated)
               </label>
               <textarea
@@ -133,16 +133,16 @@ export default function Bot() {
                 onChange={(e) => setUserAddress(e.target.value)}
                 placeholder="0x..., 0x..., 0x..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-400 mt-1">
                 Enter multiple addresses separated by commas
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-200 mb-1">
                 Repayment Token
               </label>
               <div className="space-y-2">
@@ -156,7 +156,7 @@ export default function Bot() {
                       onChange={(e) => setSelectedToken(e.target.value)}
                       className="mr-2"
                     />
-                    <span className="text-sm">
+                    <span className="text-sm text-gray-200">
                       {token.symbol} ({token.address})
                     </span>
                   </label>
@@ -176,36 +176,36 @@ export default function Bot() {
 
         {/* Transaction Status */}
         {hash && (
-          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-800">
+          <div className="mt-6 p-4 bg-green-900 border border-green-700 rounded-md">
+            <p className="text-sm text-green-300">
               Transaction Hash: <span className="font-mono">{hash}</span>
             </p>
           </div>
         )}
 
         {isConfirmed && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-800 font-semibold">
+          <div className="mt-4 p-4 bg-green-900 border border-green-700 rounded-md">
+            <p className="text-sm text-green-300 font-semibold">
               Transaction confirmed successfully!
             </p>
           </div>
         )}
 
         {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-800">
+          <div className="mt-4 p-4 bg-red-900 border border-red-700 rounded-md">
+            <p className="text-sm text-red-300">
               Error: {error.message}
             </p>
           </div>
         )}
 
         {/* Current Selection Info */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-md">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2">Current Selection</h4>
-          <p className="text-sm text-gray-600">
+        <div className="mt-6 p-4 bg-gray-700 rounded-md border border-gray-600">
+          <h4 className="text-sm font-semibold text-gray-200 mb-2">Current Selection</h4>
+          <p className="text-sm text-gray-300">
             <strong>Repayment Token:</strong> {selectedTokenInfo?.symbol} ({selectedTokenInfo?.address})
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-300">
             <strong>User Address:</strong> {userAddress || 'Not specified'}
           </p>
         </div>

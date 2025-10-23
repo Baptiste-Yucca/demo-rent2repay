@@ -50,12 +50,12 @@ export default function Dashboard() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-xl p-8 text-center border border-gray-700">
+          <h1 className="text-2xl font-bold text-white mb-4">
             Rent2Repay Demo
           </h1>
-          <p className="text-gray-600 mb-6">Loading...</p>
+          <p className="text-gray-300 mb-6">Loading...</p>
         </div>
       </div>
     );
@@ -63,12 +63,12 @@ export default function Dashboard() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-xl p-8 text-center border border-gray-700">
+          <h1 className="text-2xl font-bold text-white mb-4">
             Rent2Repay Demo
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-300 mb-6">
             Connect your wallet to test the Rent2Repay smart contract on Gnosis Chain
           </p>
           <WalletConnect />
@@ -78,32 +78,32 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
+        <div className="bg-gray-800 rounded-lg shadow-xl p-6 mb-8 border border-gray-700">
+          <h1 className="text-3xl font-bold text-white mb-6">
             Rent2Repay Dashboard
           </h1>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h2 className="text-lg font-semibold text-gray-700 mb-2">
+            <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+              <h2 className="text-lg font-semibold text-gray-200 mb-2">
                 Connected Wallet
               </h2>
-              <p className="text-sm text-gray-600 font-mono break-all">
+              <p className="text-sm text-gray-300 font-mono break-all">
                 {address}
               </p>
             </div>
             
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h2 className="text-lg font-semibold text-gray-700 mb-2">
+            <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+              <h2 className="text-lg font-semibold text-gray-200 mb-2">
                 Wallet Actions
               </h2>
               <div className="space-y-2">
                 <button
                   onClick={fetchBalances}
                   disabled={loading}
-                  className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
+                  className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                 >
                   {loading ? 'Refreshing...' : 'Refresh Balances'}
                 </button>
@@ -114,31 +114,31 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
+            <h3 className="text-xl font-semibold text-white mb-4">
               USDC Balance
             </h3>
             {usdcBalance ? (
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-green-400">
                 {usdcBalance.formatted} USDC
               </div>
             ) : (
-              <div className="text-gray-500">
+              <div className="text-gray-400">
                 {loading ? 'Loading...' : 'No balance data'}
               </div>
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
+            <h3 className="text-xl font-semibold text-white mb-4">
               WXDAI Balance
             </h3>
             {wxdaiBalance ? (
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-blue-400">
                 {wxdaiBalance.formatted} WXDAI
               </div>
             ) : (
-              <div className="text-gray-500">
+              <div className="text-gray-400">
                 {loading ? 'Loading...' : 'No balance data'}
               </div>
             )}

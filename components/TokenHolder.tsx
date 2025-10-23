@@ -73,30 +73,30 @@ export default function TokenHolder() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Token Holder Configuration</h2>
+    <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
+      <h2 className="text-2xl font-bold text-white mb-6">Token Holder Configuration</h2>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Token Amounts</h3>
+          <h3 className="text-lg font-semibold text-gray-200 mb-4">Token Amounts</h3>
           <div className="space-y-4">
             {tokens.map((token, index) => (
               <div key={index} className="flex gap-4 items-end">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-200 mb-1">
                     Token Address
                   </label>
                   <select
                     value={token.token}
                     onChange={(e) => updateToken(index, 'token', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value={TOKENS.USDC}>USDC ({TOKENS.USDC})</option>
                     <option value={TOKENS.WXDAI}>WXDAI ({TOKENS.WXDAI})</option>
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-200 mb-1">
                     Amount
                   </label>
                   <input
@@ -105,7 +105,7 @@ export default function TokenHolder() {
                     value={token.amount}
                     onChange={(e) => updateToken(index, 'amount', e.target.value)}
                     placeholder="0.0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -113,7 +113,7 @@ export default function TokenHolder() {
                   <button
                     type="button"
                     onClick={() => removeToken(index)}
-                    className="px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                   >
                     Remove
                   </button>
@@ -123,7 +123,7 @@ export default function TokenHolder() {
             <button
               type="button"
               onClick={addToken}
-              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
             >
               Add Token
             </button>
@@ -132,13 +132,13 @@ export default function TokenHolder() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-200 mb-1">
               Period
             </label>
             <select
               value={period}
               onChange={(e) => setPeriod(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {PERIOD_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -146,28 +146,28 @@ export default function TokenHolder() {
                 </option>
               ))}
             </select>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               Selected: {formatPeriod(period)}
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-200 mb-1">
               Timestamp (Epoch)
             </label>
             <input
               type="number"
               value={timestamp}
               onChange={(e) => setTimestamp(Number(e.target.value))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               Current: {Math.floor(Date.now() / 1000)}
             </p>
             <button
               type="button"
               onClick={() => setTimestamp(Math.floor(Date.now() / 1000))}
-              className="mt-2 px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+              className="mt-2 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
             >
               Use Current Time
             </button>
@@ -185,24 +185,24 @@ export default function TokenHolder() {
         </div>
 
         {hash && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-800">
+          <div className="mt-4 p-4 bg-green-900 border border-green-700 rounded-md">
+            <p className="text-sm text-green-300">
               Transaction Hash: <span className="font-mono">{hash}</span>
             </p>
           </div>
         )}
 
         {isConfirmed && (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-            <p className="text-sm text-green-800 font-semibold">
+          <div className="mt-4 p-4 bg-green-900 border border-green-700 rounded-md">
+            <p className="text-sm text-green-300 font-semibold">
               Transaction confirmed successfully!
             </p>
           </div>
         )}
 
         {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-800">
+          <div className="mt-4 p-4 bg-red-900 border border-red-700 rounded-md">
+            <p className="text-sm text-red-300">
               Error: {error.message}
             </p>
           </div>

@@ -16,7 +16,7 @@ export default function WalletConnect() {
   if (!mounted) {
     return (
       <div className="flex items-center gap-4">
-        <div className="text-sm text-gray-500">Loading...</div>
+        <div className="text-sm text-gray-400">Loading...</div>
       </div>
     );
   }
@@ -25,14 +25,14 @@ export default function WalletConnect() {
     return (
       <div className="flex items-center gap-4">
         <div className="text-sm">
-          <span className="text-gray-600">Connected:</span>
-          <span className="font-mono text-blue-600 ml-2">
+          <span className="text-gray-300">Connected:</span>
+          <span className="font-mono text-blue-400 ml-2">
             {address?.slice(0, 6)}...{address?.slice(-4)}
           </span>
         </div>
         <button
           onClick={() => disconnect()}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
         >
           Disconnect
         </button>
@@ -47,7 +47,7 @@ export default function WalletConnect() {
           key={connector.uid}
           onClick={() => connect({ connector })}
           disabled={isPending}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
         >
           {isPending ? 'Connecting...' : `Connect ${connector.name}`}
         </button>
