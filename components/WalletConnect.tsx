@@ -2,16 +2,30 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { normalizeAddress } from '@/utils/addressUtils';
 
 export default function WalletConnect() {
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const [mounted, setMounted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const copyAddress = async () => {
+    if (address) {
+      try {
+        await navigator.clipboard.writeText(address);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy address:', err);
+      }
+    }
+  };
 
   if (!mounted) {
     return (
@@ -30,6 +44,21 @@ export default function WalletConnect() {
             {address?.slice(0, 6)}...{address?.slice(-4)}
           </span>
         </div>
+        <button
+          onClick={copyAddress}
+          className="p-2 text-gray-400 hover:text-white transition-colors"
+          title="Copy address"
+        >
+          {copied ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          )}
+        </button>
         <button
           onClick={() => disconnect()}
           className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"

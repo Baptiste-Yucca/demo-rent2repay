@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { RENT2REPAY_ABI, REPAYMENT_TOKENS } from '@/constants';
+import { getTokenInfo } from '@/utils/getTokenInfo';
 
 export default function Bot() {
   const { address } = useAccount();
   const [userAddress, setUserAddress] = useState('');
-  const [selectedToken, setSelectedToken] = useState(REPAYMENT_TOKENS[0].address);
+  const [selectedToken, setSelectedToken] = useState<string>(REPAYMENT_TOKENS[0].address);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { writeContract, data: hash, error, isPending } = useWriteContract();
@@ -68,110 +69,68 @@ export default function Bot() {
     <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
       <h2 className="text-2xl font-bold text-white mb-6">Bot - Rent2Repay Execution</h2>
       
-      <div className="space-y-8">
-        {/* Single User Repayment */}
+      <form className="space-y-6">
+        {/* User Addresses */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-200 mb-4">Single User Repayment</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                User Address
-              </label>
-              <input
-                type="text"
-                value={userAddress}
-                onChange={(e) => setUserAddress(e.target.value)}
-                placeholder="0x..."
-                className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Repayment Token
-              </label>
-              <div className="space-y-2">
-                {REPAYMENT_TOKENS.map((token) => (
-                  <label key={token.address} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="repaymentToken"
-                      value={token.address}
-                      checked={selectedToken === token.address}
-                      onChange={(e) => setSelectedToken(e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm text-gray-200">
-                      {token.symbol} ({token.address})
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isPending || isConfirming || isSubmitting}
-              className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Execute Rent2Repay'}
-            </button>
-          </form>
+          <label className="block text-sm font-medium text-gray-200 mb-1">
+            User Address(es)
+          </label>
+          <textarea
+            value={userAddress}
+            onChange={(e) => setUserAddress(e.target.value)}
+            placeholder="Single: fill one address 0x...&#10;Multi: fill few addresses separated by comma 0x..., 0x..., 0x..."
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <p className="text-sm text-gray-400 mt-1">
+            Single user: enter one address | Multiple users: separate addresses with commas
+          </p>
         </div>
 
-        {/* Batch Repayment */}
-        <div className="border-t border-gray-600 pt-8">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4">Batch User Repayment</h3>
-          <form onSubmit={handleBatchSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                User Addresses (comma-separated)
+        {/* Repayment Token */}
+        <div>
+          <label className="block text-sm font-medium text-gray-200 mb-1">
+            Repayment Token
+          </label>
+          <div className="space-y-2">
+            {REPAYMENT_TOKENS.map((token) => (
+              <label key={token.address} className="flex items-center">
+                <input
+                  type="radio"
+                  name="repaymentToken"
+                  value={token.address}
+                  checked={selectedToken === token.address}
+                  onChange={(e) => setSelectedToken(e.target.value)}
+                  className="mr-2"
+                />
+                <span className="text-sm text-gray-200">
+                  {token.symbol} ({token.address})
+                </span>
               </label>
-              <textarea
-                value={userAddress}
-                onChange={(e) => setUserAddress(e.target.value)}
-                placeholder="0x..., 0x..., 0x..."
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              />
-              <p className="text-sm text-gray-400 mt-1">
-                Enter multiple addresses separated by commas
-              </p>
-            </div>
+            ))}
+          </div>
+        </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-200 mb-1">
-                Repayment Token
-              </label>
-              <div className="space-y-2">
-                {REPAYMENT_TOKENS.map((token) => (
-                  <label key={token.address} className="flex items-center">
-                    <input
-                      type="radio"
-                      name="batchRepaymentToken"
-                      value={token.address}
-                      checked={selectedToken === token.address}
-                      onChange={(e) => setSelectedToken(e.target.value)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm text-gray-200">
-                      {token.symbol} ({token.address})
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isPending || isConfirming || isSubmitting}
-              className="w-full bg-purple-600 text-white py-3 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Execute Batch Rent2Repay'}
-            </button>
-          </form>
+        {/* Action Buttons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={isPending || isConfirming || isSubmitting}
+            className="bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Execute Rent2Repay'}
+          </button>
+          
+          <button
+            type="button"
+            onClick={handleBatchSubmit}
+            disabled={isPending || isConfirming || isSubmitting}
+            className="bg-purple-600 text-white py-3 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Execute Batch Rent2Repay'}
+          </button>
         </div>
 
         {/* Transaction Status */}
@@ -206,10 +165,10 @@ export default function Bot() {
             <strong>Repayment Token:</strong> {selectedTokenInfo?.symbol} ({selectedTokenInfo?.address})
           </p>
           <p className="text-sm text-gray-300">
-            <strong>User Address:</strong> {userAddress || 'Not specified'}
+            <strong>User Address(es):</strong> {userAddress || 'Not specified'}
           </p>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

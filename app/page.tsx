@@ -6,7 +6,9 @@ import { useAccount } from 'wagmi';
 import Dashboard from '@/components/Dashboard';
 import TabNavigation from '@/components/TabNavigation';
 import TokenHolder from '@/components/TokenHolder';
+import CheckConfig from '@/components/CheckConfig';
 import Bot from '@/components/Bot';
+import Rent2RepayConfig from '@/components/Rent2RepayConfig';
 import WalletConnect from '@/components/WalletConnect';
 
 export default function Home() {
@@ -39,9 +41,19 @@ export default function Home() {
       component: <TokenHolder />,
     },
     {
+      id: 'checkconfig',
+      label: 'Check Config',
+      component: <CheckConfig />,
+    },
+    {
       id: 'bot',
       label: 'Bot',
       component: <Bot />,
+    },
+    {
+      id: 'config',
+      label: 'Config Rent2Repay',
+      component: <Rent2RepayConfig />,
     },
   ];
 

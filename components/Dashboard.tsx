@@ -5,6 +5,8 @@ import { useAccount } from 'wagmi';
 // import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { getUSDCBalance, getWXDAIBalance } from '@/lib/viem';
 import WalletConnect from './WalletConnect';
+import { AddressDisplay } from '@/utils/copyAddress';
+import { normalizeAddress } from '@/utils/addressUtils';
 
 interface TokenBalance {
   balance: bigint;
@@ -90,9 +92,9 @@ export default function Dashboard() {
               <h2 className="text-lg font-semibold text-gray-200 mb-2">
                 Connected Wallet
               </h2>
-              <p className="text-sm text-gray-300 font-mono break-all">
-                {address}
-              </p>
+              <div className="text-sm text-gray-300">
+                <AddressDisplay address={address} label="wallet-address" color="text-gray-300" showFullAddress={true} />
+              </div>
             </div>
             
             <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">

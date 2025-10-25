@@ -2,10 +2,16 @@
 
 import React, { useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { parseEther } from 'viem';
-import { RENT2REPAY_ABI, PERIOD_OPTIONS, TOKENS } from '@/constants';
+import { parseUnits } from 'viem';
+import { RENT2REPAY_ABI, PERIOD_OPTIONS, REPAYMENT_TOKENS, ERC20_ABI } from '@/constants';
+import { getTokenInfo } from '@/utils/getTokenInfo';
 
 interface TokenAmount {
+  token: string;
+  amount: string;
+}
+
+interface ApprovalToken {
   token: string;
   amount: string;
 }
@@ -13,11 +19,17 @@ interface TokenAmount {
 export default function TokenHolder() {
   const { address } = useAccount();
   const [tokens, setTokens] = useState<TokenAmount[]>([
-    { token: TOKENS.USDC, amount: '' }
+    { token: REPAYMENT_TOKENS[0].address, amount: '' }
   ]);
+  const [approvalToken, setApprovalToken] = useState<ApprovalToken>({
+    token: REPAYMENT_TOKENS[0].address,
+    amount: ''
+  });
   const [period, setPeriod] = useState(0);
   const [timestamp, setTimestamp] = useState(Math.floor(Date.now() / 1000));
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isRevoking, setIsRevoking] = useState(false);
 
   const { writeContract, data: hash, error, isPending } = useWriteContract();
   
@@ -26,7 +38,7 @@ export default function TokenHolder() {
   });
 
   const addToken = () => {
-    setTokens([...tokens, { token: TOKENS.USDC, amount: '' }]);
+    setTokens([...tokens, { token: REPAYMENT_TOKENS[0].address, amount: '' }]);
   };
 
   const removeToken = (index: number) => {
@@ -49,7 +61,11 @@ export default function TokenHolder() {
     
     try {
       const tokenAddresses = tokens.map(t => t.token as `0x${string}`);
-      const amounts = tokens.map(t => parseEther(t.amount || '0'));
+      const amounts = tokens.map(t => {
+        const tokenInfo = REPAYMENT_TOKENS.find(token => token.address === t.token);
+        const decimals = tokenInfo?.decimals || 18;
+        return parseUnits(t.amount || '0', decimals);
+      });
 
       writeContract({
         address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
@@ -61,6 +77,48 @@ export default function TokenHolder() {
       console.error('Error submitting transaction:', err);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleApproval = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!address) return;
+
+    setIsApproving(true);
+    
+    try {
+      const tokenInfo = getTokenInfo(approvalToken.token);
+      const amount = parseUnits(approvalToken.amount || '0', tokenInfo.decimals);
+
+      writeContract({
+        address: approvalToken.token as `0x${string}`,
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`, amount],
+      });
+    } catch (err) {
+      console.error('Error approving token:', err);
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  const handleRevokeAll = async () => {
+    if (!address) return;
+
+    setIsRevoking(true);
+    
+    try {
+      writeContract({
+        address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
+        abi: RENT2REPAY_ABI,
+        functionName: 'revokeRent2RepayAll',
+        args: [],
+      });
+    } catch (err) {
+      console.error('Error revoking all:', err);
+    } finally {
+      setIsRevoking(false);
     }
   };
 
@@ -91,8 +149,11 @@ export default function TokenHolder() {
                     onChange={(e) => updateToken(index, 'token', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value={TOKENS.USDC}>USDC ({TOKENS.USDC})</option>
-                    <option value={TOKENS.WXDAI}>WXDAI ({TOKENS.WXDAI})</option>
+                    {REPAYMENT_TOKENS.map((tokenOption) => (
+                      <option key={tokenOption.address} value={tokenOption.address}>
+                        {tokenOption.symbol} ({tokenOption.address})
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="flex-1">
@@ -181,6 +242,67 @@ export default function TokenHolder() {
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Configure Rent2Repay'}
+          </button>
+        </div>
+
+        {/* Token Approval Section */}
+        <div className="border-t border-gray-600 pt-6">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4">Token Approval</h3>
+          <form onSubmit={handleApproval} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-1">
+                  Token
+                </label>
+                <select
+                  value={approvalToken.token}
+                  onChange={(e) => setApprovalToken({ ...approvalToken, token: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {REPAYMENT_TOKENS.map((tokenOption) => (
+                    <option key={tokenOption.address} value={tokenOption.address}>
+                      {tokenOption.symbol} ({tokenOption.address})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-200 mb-1">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={approvalToken.amount}
+                  onChange={(e) => setApprovalToken({ ...approvalToken, amount: e.target.value })}
+                  placeholder="0.0"
+                  className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={isPending || isConfirming || isApproving}
+              className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Approve Token'}
+            </button>
+          </form>
+        </div>
+
+        {/* Revoke All Section */}
+        <div className="border-t border-gray-600 pt-6">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4">Revoke All Approvals</h3>
+          <p className="text-sm text-gray-400 mb-4">
+            This will revoke all Rent2Repay approvals for all tokens.
+          </p>
+          <button
+            onClick={handleRevokeAll}
+            disabled={isPending || isConfirming || isRevoking}
+            className="w-full bg-red-600 text-white py-3 px-4 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Revoke All Approvals'}
           </button>
         </div>
 
