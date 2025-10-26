@@ -21,3 +21,6 @@ data
 # System Files
 .DS_Store
 Thumbs.db
+
+# docker 
+docker-compose.yml
