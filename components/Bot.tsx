@@ -94,23 +94,17 @@ export default function Bot() {
           <label className="block text-sm font-medium text-gray-200 mb-1">
             Repayment Token
           </label>
-          <div className="space-y-2">
+          <select
+            value={selectedToken}
+            onChange={(e) => setSelectedToken(e.target.value)}
+            className="input-field w-full"
+          >
             {REPAYMENT_TOKENS.map((token) => (
-              <label key={token.address} className="flex items-center">
-                <input
-                  type="radio"
-                  name="repaymentToken"
-                  value={token.address}
-                  checked={selectedToken === token.address}
-                  onChange={(e) => setSelectedToken(e.target.value)}
-                  className="mr-2"
-                />
-                <span className="text-sm text-gray-200">
-                  {token.symbol} ({token.address})
-                </span>
-              </label>
+              <option key={token.address} value={token.address}>
+                {token.symbol} ({token.address})
+              </option>
             ))}
-          </div>
+          </select>
         </div>
 
         {/* Action Buttons */}
