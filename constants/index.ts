@@ -4,7 +4,7 @@ export const GNOSIS_CHAIN_ID = 100;
 // Token addresses on Gnosis Chain
 export const TOKENS = {
   USDC: '0xddafbb505ad214d7b80b1f830fccc89b60fb7a83',
-  WXDAI: '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b',
+  WXDAI: '0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d',
   ARMMUSDC: '0xed56f76e9cbc6a64b821e9c016eafbd3db5436d1',
   ARMMWXDAI: '0x0ca4f5554dd9da6217d62d8df2816c82bba4157b',
   DEBTUSDC: '0x69c731ae5f5356a779f44c355abb685d84e5e9e6',

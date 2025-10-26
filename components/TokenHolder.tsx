@@ -37,6 +37,14 @@ export default function TokenHolder() {
     hash,
   });
 
+  React.useEffect(() => {
+    if (isConfirmed || error) {
+      setIsApproving(false);
+      setIsSubmitting(false);
+      setIsRevoking(false);
+    }
+  }, [isConfirmed, error]);
+
   const addToken = () => {
     setTokens([...tokens, { token: REPAYMENT_TOKENS[0].address, amount: '' }]);
   };
@@ -98,7 +106,6 @@ export default function TokenHolder() {
       });
     } catch (err) {
       console.error('Error approving token:', err);
-    } finally {
       setIsApproving(false);
     }
   };
@@ -246,10 +253,35 @@ export default function TokenHolder() {
           </button>
         </div>
 
-        {/* Token Approval Section */}
-        <div className="border-t border-dark-600 pt-6">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Token Approval</h3>
-          <form onSubmit={handleApproval} className="space-y-4">
+        {hash && (
+          <div className="mt-4 p-6 bg-green-500/20 border border-green-500/30 rounded-lg">
+            <p className="text-sm text-green-400">
+              Transaction Hash: <span className="font-mono">{hash}</span>
+            </p>
+          </div>
+        )}
+
+        {isConfirmed && (
+          <div className="mt-4 p-6 bg-green-500/20 border border-green-500/30 rounded-lg">
+            <p className="text-sm text-green-400 font-semibold">
+              Transaction confirmed successfully!
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-4 p-6 bg-red-500/20 border border-red-500/30 rounded-lg">
+            <p className="text-sm text-red-400">
+              Error: {error.message}
+            </p>
+          </div>
+        )}
+      </form>
+
+      {/* Token Approval Section */}
+      <div className="border-t border-dark-600 pt-6">
+        <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Token Approval</h3>
+        <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-200 mb-1">
@@ -283,54 +315,55 @@ export default function TokenHolder() {
               </div>
             </div>
             <button
-              type="submit"
+              type="button"
+              onClick={handleApproval}
               disabled={isPending || isConfirming || isApproving}
               className="btn-primary w-full py-3 px-4 bg-green-600 hover:bg-green-700"
             >
               {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Approve Token'}
             </button>
-          </form>
         </div>
+      </div>
 
-        {/* Revoke All Section */}
-        <div className="border-t border-dark-600 pt-6">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Revoke All Approvals</h3>
-          <p className="text-sm text-gray-400 mb-4">
-            This will revoke all Rent2Repay approvals for all tokens.
+      {/* Revoke All Section */}
+      <div className="border-t border-dark-600 pt-6">
+        <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Revoke All Approvals</h3>
+        <p className="text-sm text-gray-400 mb-4">
+          This will revoke all Rent2Repay approvals for all tokens.
+        </p>
+        <button
+          onClick={handleRevokeAll}
+          disabled={isPending || isConfirming || isRevoking}
+          className="btn-danger w-full py-3 px-4"
+        >
+          {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Revoke All Approvals'}
+        </button>
+      </div>
+
+      {/* Status Messages */}
+      {hash && (
+        <div className="mt-4 p-6 bg-green-500/20 border border-green-500/30 rounded-lg">
+          <p className="text-sm text-green-400">
+            Transaction Hash: <span className="font-mono">{hash}</span>
           </p>
-          <button
-            onClick={handleRevokeAll}
-            disabled={isPending || isConfirming || isRevoking}
-            className="btn-danger w-full py-3 px-4"
-          >
-            {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Revoke All Approvals'}
-          </button>
         </div>
+      )}
 
-        {hash && (
-          <div className="mt-4 p-6 bg-green-500/20 border border-green-500/30 rounded-lg">
-            <p className="text-sm text-green-400">
-              Transaction Hash: <span className="font-mono">{hash}</span>
-            </p>
-          </div>
-        )}
+      {isConfirmed && (
+        <div className="mt-4 p-6 bg-green-500/20 border border-green-500/30 rounded-lg">
+          <p className="text-sm text-green-400 font-semibold">
+            Transaction confirmed successfully!
+          </p>
+        </div>
+      )}
 
-        {isConfirmed && (
-          <div className="mt-4 p-6 bg-green-500/20 border border-green-500/30 rounded-lg">
-            <p className="text-sm text-green-400 font-semibold">
-              Transaction confirmed successfully!
-            </p>
-          </div>
-        )}
-
-        {error && (
-          <div className="mt-4 p-6 bg-red-500/20 border border-red-500/30 rounded-lg">
-            <p className="text-sm text-red-400">
-              Error: {error.message}
-            </p>
-          </div>
-        )}
-      </form>
+      {error && (
+        <div className="mt-4 p-6 bg-red-500/20 border border-red-500/30 rounded-lg">
+          <p className="text-sm text-red-400">
+            Error: {error.message}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

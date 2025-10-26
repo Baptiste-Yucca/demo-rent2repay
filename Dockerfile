@@ -7,25 +7,30 @@ RUN apk add --no-cache curl
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json* ./
-
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy all application files
-COPY . .
+RUN mkdir -p ./public
 
 # Build arguments for environment variables
 ARG NEXT_PUBLIC_RPC_URL
 ARG NEXT_PUBLIC_R2R_PROXY
 ARG NEXT_PUBLIC_CHAIN_ID
 
-# Set environment variables
+# Set environment variables (before dependencies)
 ENV NODE_ENV=production
 ENV NEXT_PUBLIC_RPC_URL=${NEXT_PUBLIC_RPC_URL}
 ENV NEXT_PUBLIC_R2R_PROXY=${NEXT_PUBLIC_R2R_PROXY}
 ENV NEXT_PUBLIC_CHAIN_ID=${NEXT_PUBLIC_CHAIN_ID}
+# Suppress npm deprecation warnings
+ENV NPM_CONFIG_FUND=false
+ENV NPM_CONFIG_AUDIT=false
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install ALL dependencies (including devDependencies needed for build)
+RUN npm install --legacy-peer-deps
+
+# Copy all application files
+COPY . .
 
 # Build the Next.js application
 RUN npm run build

@@ -6,7 +6,13 @@ import { normalizeAddress } from '@/utils/addressUtils';
 
 export default function WalletConnect() {
   const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const { connect, connectors, isPending, error } = useConnect({
+    mutation: {
+      onError: (error) => {
+        console.error('Connection error:', error.message);
+      },
+    },
+  });
   const { disconnect } = useDisconnect();
   const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -71,6 +77,11 @@ export default function WalletConnect() {
 
   return (
     <div className="flex flex-col gap-2">
+      {error && (
+        <div className="text-sm text-red-400 bg-red-900/20 px-4 py-2 rounded-lg border border-red-800">
+          {error.message}
+        </div>
+      )}
       {connectors.map((connector) => (
         <button
           key={connector.uid}

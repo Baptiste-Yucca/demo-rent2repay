@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
-import { RENT2REPAY_ABI, ERC20_ABI, TOKENS } from '@/constants';
+import { RENT2REPAY_ABI, ERC20_ABI } from '@/constants';
 import { AddressDisplay } from '@/utils/copyAddress';
 import { normalizeAddresses } from '@/utils/addressUtils';
 import { getTokenInfo, type TokenInfo, formatTokenAmount } from '@/utils/getTokenInfo';
+import { getDebtTokenAddress } from '@/utils/debtTokenUtils';
 
 interface UserConfig {
   tokens: string[];
@@ -46,25 +47,6 @@ const TokenInfo = ({
     ],
   });
 
-  // Determine debt token based on the token type
-  const getDebtTokenAddress = (tokenAddress: string): string | null => {
-    const normalizedTokenAddress = tokenAddress.toLowerCase();
-    
-    // USDC and ARMM_USDC use DEBT_USDC
-    if (normalizedTokenAddress === TOKENS.USDC.toLowerCase() || 
-        normalizedTokenAddress === TOKENS.ARMMUSDC.toLowerCase()) {
-      return TOKENS.DEBTUSDC;
-    }
-    
-    // WXDAI and ARMM_WXDAI use DEBT_WXDAI
-    if (normalizedTokenAddress === TOKENS.WXDAI.toLowerCase() || 
-        normalizedTokenAddress === TOKENS.ARMMWXDAI.toLowerCase()) {
-      return TOKENS.DEBTWXDAI;
-    }
-    
-    return null;
-  };
-
   const debtTokenAddress = getDebtTokenAddress(tokenAddress);
   
   // Get debt token balance
@@ -100,10 +82,10 @@ const TokenInfo = ({
           <span className="text-blue-400">Balance:</span> {balance !== undefined && typeof balance === 'bigint' ? formatTokenAmount(balance, tokenInfo.decimals) : 'Loading...'} {tokenInfo.symbol}
         </div>
         <div className="text-sm text-gray-300">
-          <span className="text-purple-400">Approval:</span> {allowance !== undefined && typeof allowance === 'bigint' ? formatTokenAmount(allowance, tokenInfo.decimals) : 'Loading...'} {tokenInfo.symbol}
+          <span className="text-red-400">Debt:</span> {debtTokenAddress ? (debtBalance !== undefined && typeof debtBalance === 'bigint' ? formatTokenAmount(debtBalance, tokenInfo.decimals) : 'Loading...') : 'N/A'} {tokenInfo.symbol}
         </div>
         <div className="text-sm text-gray-300">
-          <span className="text-red-400">Debt:</span> {debtTokenAddress ? (debtBalance !== undefined && typeof debtBalance === 'bigint' ? formatTokenAmount(debtBalance, tokenInfo.decimals) : 'Loading...') : 'N/A'} {tokenInfo.symbol}
+          <span className="text-purple-400">Approval:</span> {allowance !== undefined && typeof allowance === 'bigint' ? formatTokenAmount(allowance, tokenInfo.decimals) : 'Loading...'} {tokenInfo.symbol}
         </div>
       </div>
     </div>
