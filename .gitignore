@@ -23,4 +23,7 @@ data
 Thumbs.db
 
 # docker 
-docker-compose.yml
+docker-compose.yaml
+
+# build
+.next/
