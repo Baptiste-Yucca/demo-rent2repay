@@ -27,3 +27,14 @@ docker-compose.yaml
 
 # build
 .next/
+
+# dependencies
+/node_modules
+
+# production
+/.next
+/out
+/dist
+
+# logs
+/logs/*
