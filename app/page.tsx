@@ -21,9 +21,9 @@ export default function Home() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Rent2Repay Demo</h1>
+          <h1 className="text-2xl font-bold text-white mb-4 font-display">Rent2Repay Demo</h1>
           <p className="text-gray-300">Loading...</p>
         </div>
       </div>
@@ -58,19 +58,24 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-dark-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="bg-gray-800 rounded-lg shadow-xl p-6 mb-8 border border-gray-700">
+        <div className="card p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-white">
-              Rent2Repay Demo
-            </h1>
+            <div>
+              <h1 className="text-3xl font-bold text-white font-display">
+                Rent2Repay Demo
+              </h1>
+              <p className="text-primary-500 font-semibold text-sm mt-1">
+                Don't hesitate to report bug at @BaptisteYucca on Telegram
+              </p>
+            </div>
             <WalletConnect />
           </div>
           
-          <div className="text-sm text-gray-300">
-            <p><strong className="text-gray-200">Network:</strong> Gnosis Chain (ID: 100)</p>
-            <p><strong className="text-gray-200">Contract:</strong> {process.env.NEXT_PUBLIC_R2R_PROXY || 'Not configured'}</p>
+          <div className="text-sm text-gray-400">
+            <p><strong className="text-gray-300">Network:</strong> Gnosis Chain (ID: 100)</p>
+            <p><strong className="text-gray-300">Contract:</strong> {process.env.NEXT_PUBLIC_R2R_PROXY || 'Not configured'}</p>
           </div>
         </div>
 

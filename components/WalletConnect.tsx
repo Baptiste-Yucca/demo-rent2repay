@@ -38,15 +38,15 @@ export default function WalletConnect() {
   if (isConnected) {
     return (
       <div className="flex items-center gap-4">
-        <div className="text-sm">
-          <span className="text-gray-300">Connected:</span>
-          <span className="font-mono text-blue-400 ml-2">
+          <div className="text-sm bg-dark-700 px-4 py-2 rounded-lg border border-dark-600">
+          <span className="text-gray-400">Connected:</span>
+          <span className="font-mono text-primary-500 ml-2">
             {address?.slice(0, 6)}...{address?.slice(-4)}
           </span>
         </div>
         <button
           onClick={copyAddress}
-          className="p-2 text-gray-400 hover:text-white transition-colors"
+          className="p-2 text-gray-400 hover:text-white hover:bg-dark-700 rounded-lg transition-all"
           title="Copy address"
         >
           {copied ? (
@@ -61,7 +61,7 @@ export default function WalletConnect() {
         </button>
         <button
           onClick={() => disconnect()}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          className="btn-danger px-4 py-2"
         >
           Disconnect
         </button>
@@ -76,7 +76,7 @@ export default function WalletConnect() {
           key={connector.uid}
           onClick={() => connect({ connector })}
           disabled={isPending}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary px-4 py-2"
         >
           {isPending ? 'Connecting...' : `Connect ${connector.name}`}
         </button>

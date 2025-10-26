@@ -66,8 +66,9 @@ export default function Bot() {
   const selectedTokenInfo = REPAYMENT_TOKENS.find(token => token.address === selectedToken);
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
-      <h2 className="text-2xl font-bold text-white mb-6">Bot - Rent2Repay Execution</h2>
+    <div className="card p-8">
+      <h2 className="text-2xl font-bold text-white mb-2 font-display">Bot - Rent2Repay Execution</h2>
+      <p className="text-gray-400 text-sm mb-6">Exécutez Rent2Repay pour un utilisateur</p>
       
       <form className="space-y-6">
         {/* User Addresses */}
@@ -80,7 +81,7 @@ export default function Bot() {
             onChange={(e) => setUserAddress(e.target.value)}
             placeholder="Single: fill one address 0x...&#10;Multi: fill few addresses separated by comma 0x..., 0x..., 0x..."
             rows={3}
-            className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="input-field w-full"
             required
           />
           <p className="text-sm text-gray-400 mt-1">
@@ -118,7 +119,7 @@ export default function Bot() {
             type="button"
             onClick={handleSubmit}
             disabled={isPending || isConfirming || isSubmitting}
-            className="bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full py-3 px-4 bg-green-600 hover:bg-green-700"
           >
             {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Execute Rent2Repay'}
           </button>
@@ -127,7 +128,7 @@ export default function Bot() {
             type="button"
             onClick={handleBatchSubmit}
             disabled={isPending || isConfirming || isSubmitting}
-            className="bg-purple-600 text-white py-3 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full py-3 px-4 bg-purple-600 hover:bg-purple-700"
           >
             {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Execute Batch Rent2Repay'}
           </button>
@@ -135,31 +136,31 @@ export default function Bot() {
 
         {/* Transaction Status */}
         {hash && (
-          <div className="mt-6 p-4 bg-green-900 border border-green-700 rounded-md">
-            <p className="text-sm text-green-300">
+          <div className="mt-6 p-6 bg-green-500/20 border border-green-500/30 rounded-lg">
+              <p className="text-sm text-green-400">
               Transaction Hash: <span className="font-mono">{hash}</span>
-            </p>
+              </p>
           </div>
         )}
 
         {isConfirmed && (
-          <div className="mt-4 p-4 bg-green-900 border border-green-700 rounded-md">
-            <p className="text-sm text-green-300 font-semibold">
+          <div className="mt-6 p-6 bg-green-500/20 border border-green-500/30 rounded-lg">
+            <p className="text-sm text-green-400 font-semibold">
               Transaction confirmed successfully!
             </p>
           </div>
         )}
 
         {error && (
-          <div className="mt-4 p-4 bg-red-900 border border-red-700 rounded-md">
-            <p className="text-sm text-red-300">
+          <div className="mt-6 p-6 bg-red-500/20 border border-red-500/30 rounded-lg">
+            <p className="text-sm text-red-400">
               Error: {error.message}
             </p>
           </div>
         )}
 
         {/* Current Selection Info */}
-        <div className="mt-6 p-4 bg-gray-700 rounded-md border border-gray-600">
+        <div className="mt-6 p-6 bg-dark-700 rounded-lg border border-dark-600">
           <h4 className="text-sm font-semibold text-gray-200 mb-2">Current Selection</h4>
           <p className="text-sm text-gray-300">
             <strong>Repayment Token:</strong> {selectedTokenInfo?.symbol} ({selectedTokenInfo?.address})

@@ -52,9 +52,9 @@ export default function Dashboard() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-xl p-8 text-center border border-gray-700">
-          <h1 className="text-2xl font-bold text-white mb-4">
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+        <div className="max-w-md w-full card p-8 text-center">
+          <h1 className="text-2xl font-bold text-white mb-4 font-display">
             Rent2Repay Demo
           </h1>
           <p className="text-gray-300 mb-6">Loading...</p>
@@ -65,9 +65,9 @@ export default function Dashboard() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="max-w-md w-full bg-gray-800 rounded-lg shadow-xl p-8 text-center border border-gray-700">
-          <h1 className="text-2xl font-bold text-white mb-4">
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+        <div className="max-w-md w-full card p-8 text-center">
+          <h1 className="text-2xl font-bold text-white mb-4 font-display">
             Rent2Repay Demo
           </h1>
           <p className="text-gray-300 mb-6">
@@ -80,32 +80,33 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-dark-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="bg-gray-800 rounded-lg shadow-xl p-6 mb-8 border border-gray-700">
-          <h1 className="text-3xl font-bold text-white mb-6">
+        <div className="card p-8 mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2 font-display">
             Rent2Repay Dashboard
           </h1>
+          <p className="text-primary-500 font-semibold text-sm mb-6">WALLET INFORMATION</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-              <h2 className="text-lg font-semibold text-gray-200 mb-2">
+            <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+              <h2 className="text-lg font-semibold text-gray-200 mb-2 font-display">
                 Connected Wallet
               </h2>
               <div className="text-sm text-gray-300">
-                <AddressDisplay address={address} label="wallet-address" color="text-gray-300" showFullAddress={true} />
+                <AddressDisplay address={address} label="wallet-address" color="text-primary-500" showFullAddress={true} />
               </div>
             </div>
             
-            <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-              <h2 className="text-lg font-semibold text-gray-200 mb-2">
+            <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+              <h2 className="text-lg font-semibold text-gray-200 mb-2 font-display">
                 Wallet Actions
               </h2>
               <div className="space-y-2">
                 <button
                   onClick={fetchBalances}
                   disabled={loading}
-                  className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                  className="btn-primary w-full"
                 >
                   {loading ? 'Refreshing...' : 'Refresh Balances'}
                 </button>
@@ -116,12 +117,12 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
-            <h3 className="text-xl font-semibold text-white mb-4">
+          <div className="card p-6">
+            <h3 className="text-xl font-semibold text-white mb-4 font-display">
               USDC Balance
             </h3>
             {usdcBalance ? (
-              <div className="text-2xl font-bold text-green-400">
+              <div className="text-2xl font-bold text-primary-500">
                 {usdcBalance.formatted} USDC
               </div>
             ) : (
@@ -131,12 +132,12 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
-            <h3 className="text-xl font-semibold text-white mb-4">
+          <div className="card p-6">
+            <h3 className="text-xl font-semibold text-white mb-4 font-display">
               WXDAI Balance
             </h3>
             {wxdaiBalance ? (
-              <div className="text-2xl font-bold text-blue-400">
+              <div className="text-2xl font-bold text-primary-500">
                 {wxdaiBalance.formatted} WXDAI
               </div>
             ) : (

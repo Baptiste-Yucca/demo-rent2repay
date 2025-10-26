@@ -103,7 +103,7 @@ export default function Rent2RepayConfig() {
 
   if (!mounted) {
     return (
-      <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
+      <div className="card p-8">
         <div className="text-center text-gray-400">Loading configuration...</div>
       </div>
     );
@@ -111,20 +111,21 @@ export default function Rent2RepayConfig() {
 
   if (!isConnected) {
     return (
-      <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
+      <div className="card p-8">
         <div className="text-center text-gray-400">Please connect your wallet to view configuration</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
-      <h2 className="text-2xl font-bold text-white mb-6">Rent2Repay Configuration</h2>
+    <div className="card p-8">
+      <h2 className="text-2xl font-bold text-white mb-2 font-display">Rent2Repay Configuration</h2>
+      <p className="text-gray-400 text-sm mb-6">Configurez les paramètres du contrat</p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* DAO Fees */}
-        <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4">DAO Fees</h3>
+        <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">DAO Fees</h3>
           <div className="space-y-3">
             <div>
               <span className="text-sm text-gray-300">DAO Fees (BPS):</span>
@@ -133,12 +134,12 @@ export default function Rent2RepayConfig() {
               </span>
             </div>
             <div>
-              <span className="text-sm text-gray-300">DAO Treasury:</span>
+              <span className="text-sm text-gray-400">DAO Treasury:</span>
               <div className="ml-2">
                 <ClickableAddressDisplay 
                   address={daoFeeReductionConfig && Array.isArray(daoFeeReductionConfig) ? daoFeeReductionConfig[3] : undefined} 
                   label="dao-treasury" 
-                  color="text-blue-400" 
+                  color="text-primary-500" 
                 />
               </div>
             </div>
@@ -146,28 +147,28 @@ export default function Rent2RepayConfig() {
         </div>
 
         {/* Fee Reduction */}
-        <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4">Fee Reduction</h3>
+        <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Fee Reduction</h3>
           <div className="space-y-3">
             <div>
-              <span className="text-sm text-gray-300">Reduction (BPS):</span>
-              <span className="ml-2 font-mono text-green-400">
+              <span className="text-sm text-gray-400">Reduction (BPS):</span>
+              <span className="ml-2 font-mono text-primary-500">
                 {daoFeeReductionConfig && Array.isArray(daoFeeReductionConfig) && daoFeeReductionConfig[2] ? daoFeeReductionConfig[2].toString() : 'Loading...'}
               </span>
             </div>
             <div>
-              <span className="text-sm text-gray-300">Min Amount:</span>
-              <span className="ml-2 font-mono text-green-400">
+              <span className="text-sm text-gray-400">Min Amount:</span>
+              <span className="ml-2 font-mono text-primary-500">
                 {daoFeeReductionConfig && Array.isArray(daoFeeReductionConfig) && daoFeeReductionConfig[1] ? daoFeeReductionConfig[1].toString() : 'Loading...'}
               </span>
             </div>
             <div>
-              <span className="text-sm text-gray-300">Reduction Token:</span>
+              <span className="text-sm text-gray-400">Reduction Token:</span>
               <div className="ml-2">
                 <ClickableAddressDisplay 
                   address={daoFeeReductionConfig && Array.isArray(daoFeeReductionConfig) ? daoFeeReductionConfig[0] : undefined} 
                   label="reduction-token" 
-                  color="text-green-400" 
+                  color="text-primary-500" 
                 />
               </div>
             </div>
@@ -175,12 +176,12 @@ export default function Rent2RepayConfig() {
         </div>
 
         {/* Sender Tips */}
-        <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4">Sender Tips</h3>
+        <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Sender Tips</h3>
           <div className="space-y-3">
             <div>
-              <span className="text-sm text-gray-300">Tips (BPS):</span>
-              <span className="ml-2 font-mono text-purple-400">
+              <span className="text-sm text-gray-400">Tips (BPS):</span>
+              <span className="ml-2 font-mono text-primary-500">
                 {feeConfiguration && Array.isArray(feeConfiguration) && feeConfiguration[1] ? feeConfiguration[1].toString() : 'Loading...'}
               </span>
             </div>
@@ -188,19 +189,19 @@ export default function Rent2RepayConfig() {
         </div>
 
         {/* Contract Status */}
-        <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4">Contract Status</h3>
+        <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Contract Status</h3>
           <div className="space-y-3">
             <div>
-              <span className="text-sm text-gray-300">Status:</span>
-              <span className={`ml-2 px-2 py-1 rounded text-xs font-semibold ${
-                paused ? 'bg-red-900 text-red-300' : 'bg-green-900 text-green-300'
+              <span className="text-sm text-gray-400">Status:</span>
+              <span className={`ml-2 px-3 py-1.5 rounded-full text-xs font-semibold ${
+                paused ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'
               }`}>
                 {paused ? 'PAUSED' : 'ACTIVE'}
               </span>
             </div>
             <div>
-              <span className="text-sm text-gray-300">Contract:</span>
+              <span className="text-sm text-gray-400">Contract:</span>
               <div className="ml-2">
                 <ClickableAddressDisplay 
                   address={process.env.NEXT_PUBLIC_R2R_PROXY} 
@@ -214,13 +215,25 @@ export default function Rent2RepayConfig() {
       </div>
 
       {/* Additional Info */}
-      <div className="mt-6 p-4 bg-gray-700 rounded-md border border-gray-600">
+      <div className="mt-6 p-6 bg-dark-700 rounded-lg border border-dark-600">
         <h4 className="text-sm font-semibold text-gray-200 mb-2">Configuration Details</h4>
-        <div className="text-xs text-gray-400 space-y-1">
-          <p>• <strong>BPS</strong>: Basis Points (1 BPS = 0.01%)</p>
-          <p>• <strong>DAO Fees</strong>: Fees collected by the DAO treasury</p>
-          <p>• <strong>Fee Reduction</strong>: Discount applied when using specific tokens</p>
-          <p>• <strong>Sender Tips</strong>: Additional fees for transaction senders</p>
+        <div className="text-xs text-gray-400 space-y-2">
+          <p className="flex items-start">
+            <span className="text-primary-500 mr-2">•</span>
+            <span><strong className="text-gray-300">BPS:</strong> Basis Points (1 BPS = 0.01%)</span>
+          </p>
+          <p className="flex items-start">
+            <span className="text-primary-500 mr-2">•</span>
+            <span><strong className="text-gray-300">DAO Fees:</strong> Fees collected by the DAO treasury</span>
+          </p>
+          <p className="flex items-start">
+            <span className="text-primary-500 mr-2">•</span>
+            <span><strong className="text-gray-300">Fee Reduction:</strong> Discount applied when using specific tokens</span>
+          </p>
+          <p className="flex items-start">
+            <span className="text-primary-500 mr-2">•</span>
+            <span><strong className="text-gray-300">Sender Tips:</strong> Additional fees for transaction senders</span>
+          </p>
         </div>
       </div>
     </div>

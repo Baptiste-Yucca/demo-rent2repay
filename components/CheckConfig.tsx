@@ -183,8 +183,9 @@ export default function CheckConfig(): React.ReactElement {
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl p-6 border border-gray-700">
-      <h2 className="text-2xl font-bold text-white mb-6">Check User Configuration</h2>
+    <div className="card p-8">
+      <h2 className="text-2xl font-bold text-white mb-2 font-display">Check User Configuration</h2>
+      <p className="text-gray-400 text-sm mb-6">Vérifiez la configuration d'un utilisateur</p>
       
       <div className="space-y-6">
         {/* Input Section */}
@@ -198,12 +199,12 @@ export default function CheckConfig(): React.ReactElement {
               value={userAddress}
               onChange={(e) => setUserAddress(e.target.value)}
               placeholder="0x..."
-              className="flex-1 px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field flex-1"
             />
             <button
               onClick={handleCheck}
               disabled={!userAddress || isChecking}
-              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary px-6 py-2"
             >
               {isChecking ? 'Checking...' : 'Check'}
             </button>
@@ -237,7 +238,7 @@ export default function CheckConfig(): React.ReactElement {
               Configuration for: <AddressDisplay address={userAddress} label="checked-user" color="text-blue-400" />
             </h3>
             
-            <div className="bg-gray-700 rounded-lg p-4 border border-gray-600">
+            <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
               {userConfig.tokens.map((tokenAddress, index) => {
                 const tokenInfo = getTokenInfo(tokenAddress);
                 const amount = userConfig.maxAmounts[index];
@@ -272,7 +273,7 @@ export default function CheckConfig(): React.ReactElement {
         )}
 
         {/* Instructions */}
-        <div className="mt-6 p-4 bg-gray-700 rounded-md border border-gray-600">
+        <div className="mt-6 p-6 bg-dark-700 rounded-lg border border-dark-600">
           <h4 className="text-sm font-semibold text-gray-200 mb-2">Instructions</h4>
           <div className="text-xs text-gray-400 space-y-1">
             <p>• Enter a user address to check their Rent2Repay configuration</p>
