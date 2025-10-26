@@ -157,7 +157,7 @@ export default function Rent2RepayConfig() {
               </span>
             </div>
             <div>
-              <span className="text-sm text-gray-400">Min Amount:</span>
+              <span className="text-sm text-gray-400">Min Amount (Wei):</span>
               <span className="ml-2 font-mono text-primary-500">
                 {daoFeeReductionConfig && Array.isArray(daoFeeReductionConfig) && daoFeeReductionConfig[1] ? daoFeeReductionConfig[1].toString() : 'Loading...'}
               </span>

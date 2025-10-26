@@ -37,17 +37,17 @@ export default function Home() {
   const tabs = [
     {
       id: 'tokenholder',
-      label: 'Token Holder',
+      label: 'TokenHolder',
       component: <TokenHolder />,
     },
     {
       id: 'checkconfig',
-      label: 'Check Config',
+      label: 'Check TokenHolder Config',
       component: <CheckConfig />,
     },
     {
       id: 'bot',
-      label: 'Bot',
+      label: 'Bot (Trigger Rent2Repay)',
       component: <Bot />,
     },
     {

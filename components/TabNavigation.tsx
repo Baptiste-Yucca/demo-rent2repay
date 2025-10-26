@@ -21,14 +21,14 @@ export default function TabNavigation({ tabs, defaultTab }: TabNavigationProps) 
   return (
     <div className="w-full">
       <div className="border-b border-dark-600">
-        <nav className="-mb-px flex space-x-8">
+        <nav className="flex w-full">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
+              className={`w-1/4 py-3 px-1 border-b-2 font-medium text-sm transition-all duration-200 text-center rounded-t-lg ${
                 activeTab === tab.id
-                  ? 'border-primary-500 text-primary-500'
+                  ? 'border-primary-500 text-primary-500 bg-white'
                   : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-dark-500'
               }`}
             >
