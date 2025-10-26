@@ -1,47 +1,20 @@
-# Dockerfile for Rent2Repay Demo
-FROM node:20-alpine
+version: '3.8'
 
-# Install curl for healthcheck
-RUN apk add --no-cache curl
-
-# Set working directory
-WORKDIR /app
-
-RUN mkdir -p ./public
-
-# Build arguments for environment variables
-ARG NEXT_PUBLIC_RPC_URL
-ARG NEXT_PUBLIC_R2R_PROXY
-ARG NEXT_PUBLIC_CHAIN_ID
-
-# Set environment variables (before dependencies)
-ENV NODE_ENV=production
-ENV NEXT_PUBLIC_RPC_URL=${NEXT_PUBLIC_RPC_URL}
-ENV NEXT_PUBLIC_R2R_PROXY=${NEXT_PUBLIC_R2R_PROXY}
-ENV NEXT_PUBLIC_CHAIN_ID=${NEXT_PUBLIC_CHAIN_ID}
-# Suppress npm deprecation warnings
-ENV NPM_CONFIG_FUND=false
-ENV NPM_CONFIG_AUDIT=false
-
-# Copy package files
-COPY package.json package-lock.json* ./
-
-# Install ALL dependencies (including devDependencies needed for build)
-RUN npm install --legacy-peer-deps
-
-# Copy all application files
-COPY . .
-
-# Build the Next.js application
-RUN npm run build
-
-# Expose port
-EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f http://localhost:3000 || exit 1
-
-# Start the application
-CMD ["npm", "start"]
-
+services:
+  rent2repay-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_RPC_URL=${NEXT_PUBLIC_RPC_URL}
+        - NEXT_PUBLIC_R2R_PROXY=${NEXT_PUBLIC_R2R_PROXY}
+        - NEXT_PUBLIC_CHAIN_ID=${NEXT_PUBLIC_CHAIN_ID}
+    container_name: rent2repay-demo
+    ports:
+      - "5002:3000"  # External port 3001 maps to internal port 3000
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_RPC_URL=${NEXT_PUBLIC_RPC_URL}
+      - NEXT_PUBLIC_R2R_PROXY=${NEXT_PUBLIC_R2R_PROXY}
+      - NEXT_PUBLIC_CHAIN_ID=${NEXT_PUBLIC_CHAIN_ID}
+    restart: unless-stopped
