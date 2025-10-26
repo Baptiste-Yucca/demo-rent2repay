@@ -10,6 +10,7 @@ import CheckConfig from '@/components/CheckConfig';
 import Bot from '@/components/Bot';
 import Rent2RepayConfig from '@/components/Rent2RepayConfig';
 import WalletConnect from '@/components/WalletConnect';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   const { isConnected } = useAccount();
@@ -58,8 +59,8 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-dark-900">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-dark-900 flex flex-col">
+      <div className="flex-grow max-w-6xl mx-auto px-4 py-8 w-full">
         <div className="card p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <div>
@@ -81,6 +82,8 @@ export default function Home() {
 
         <TabNavigation tabs={tabs} defaultTab="tokenholder" />
       </div>
+      
+      <Footer />
     </div>
   );
 }
