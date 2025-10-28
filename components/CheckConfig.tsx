@@ -169,20 +169,25 @@ export default function CheckConfig() {
   const userConfig = normalizeUserConfig(userConfigData);
 
   // Format timestamp to readable date
-  const formatTimestamp = (timestamp: unknown): string => {
+  const formatTimestamp = (timestamp: unknown): { formatted: string; isPast: boolean } => {
     if (!timestamp || typeof timestamp !== 'bigint' || timestamp === BigInt(0)) {
-      return 'Never';
+      return { formatted: 'Never', isPast: false };
     }
     const timestampNumber = Number(timestamp);
+    const now = Date.now() / 1000;
+    const isPast = timestampNumber <= now;
     const date = new Date(timestampNumber * 1000); // seconds → ms
-    return date.toLocaleString('fr-FR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
+    return {
+      formatted: date.toLocaleString('fr-FR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }),
+      isPast,
+    };
   };
 
   // Debug logs
@@ -279,7 +284,7 @@ export default function CheckConfig() {
             </h3>
             
             {/* Info Cards Section */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Last Repay Timestamp Section */}
               {lastRepayTimestamp && typeof lastRepayTimestamp !== 'undefined' ? (
                 <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
@@ -287,9 +292,14 @@ export default function CheckConfig() {
                   <div className="space-y-2">
                     <div className="text-sm">
                       <span className="text-gray-400">Last Repay:</span>{' '}
-                      <span className="font-mono text-green-400">
-                        {formatTimestamp(lastRepayTimestamp)}
-                      </span>
+                      {(() => {
+                        const timestampData = formatTimestamp(lastRepayTimestamp);
+                        return (
+                          <span className={`font-mono ${timestampData.isPast ? 'text-green-400' : 'text-red-400'}`}>
+                            {timestampData.formatted}
+                          </span>
+                        );
+                      })()}
                     </div>
                     {period !== undefined && typeof period === 'bigint' && (
                       <div className="text-sm text-gray-400">
