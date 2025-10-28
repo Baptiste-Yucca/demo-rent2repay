@@ -68,7 +68,7 @@ export default function Bot() {
   return (
     <div className="card p-8">
       <h2 className="text-2xl font-bold text-white mb-2 font-display">Bot - Rent2Repay Execution</h2>
-      <p className="text-gray-400 text-sm mb-6">Exécutez Rent2Repay pour un utilisateur</p>
+      <p className="text-gray-400 text-sm mb-6">Execute Rent2Repay for a user</p>
       
       <form className="space-y-6">
         {/* User Addresses */}

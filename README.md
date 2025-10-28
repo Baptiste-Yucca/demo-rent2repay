@@ -82,3 +82,6 @@ npm run build
 # Start production server
 npm start
 ```
+
+MIT Licence
+Dont hesitate to contact me on Telegram @BaptisteYucca

@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Heart, Github, Youtube, ExternalLink, Info, Send } from 'lucide-react';
+import { Github, Youtube, ExternalLink, Info, Send } from 'lucide-react';
 
 export default function Footer() {
   return (
     <footer className="w-full border-t border-dark-600 bg-dark-800 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {/* Repository */}
           <div>
             <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
@@ -52,18 +52,6 @@ export default function Footer() {
               </a>
             </div>
           </div>
-
-          {/* Made with love */}
-          <div>
-            <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
-              <Heart className="w-4 h-4 mr-2 text-red-500 fill-red-500" />
-              Made with love
-            </h3>
-            <p className="text-sm text-gray-400">
-              for the community ❤️
-            </p>
-          </div>
-
           {/* More Information */}
           <div>
             <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">

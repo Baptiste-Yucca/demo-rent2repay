@@ -109,8 +109,56 @@ export default function CheckConfig(): React.ReactElement {
     },
   });
 
+  // Read last repay timestamp
+  const { data: lastRepayTimestamp } = useReadContract({
+    address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
+    abi: RENT2REPAY_ABI,
+    functionName: 'getLastRepayTimestamps',
+    args: shouldFetch && userAddress ? [userAddress as `0x${string}`] : undefined,
+    query: {
+      enabled: shouldFetch && !!userAddress,
+    },
+  });
+
+  // Read periodicity for user
+  const { data: period } = useReadContract({
+    address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
+    abi: RENT2REPAY_ABI,
+    functionName: 'getPeriodicity',
+    args: shouldFetch && userAddress ? [userAddress as `0x${string}`] : undefined,
+    query: {
+      enabled: shouldFetch && !!userAddress,
+    },
+  });
+
   console.log('userConfigData', userConfigData);
 
+  // Format timestamp to readable date
+  const formatTimestamp = (timestamp: bigint | undefined): { formatted: string; epoch: string; isPast: boolean } | null => {
+    if (!timestamp || typeof timestamp !== 'bigint' || timestamp === BigInt(0)) return null;
+    
+    const timestampNumber = Number(timestamp);
+    const date = new Date(timestampNumber * 1000); // Convert from seconds to milliseconds
+    const now = Date.now() / 1000; // Current timestamp in seconds
+    const isPast = timestampNumber <= now;
+    
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    const formatted = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    
+    return {
+      formatted,
+      epoch: timestampNumber.toString(),
+      isPast
+    };
+  };
+
+  const timestampInfo = formatTimestamp(lastRepayTimestamp as bigint | undefined);
   
   // Normalize addresses to lowercase
   const normalizeUserConfig = (data: any): UserConfig | undefined => {
@@ -167,7 +215,7 @@ export default function CheckConfig(): React.ReactElement {
   return (
     <div className="card p-8">
       <h2 className="text-2xl font-bold text-white mb-2 font-display">Check User Configuration</h2>
-      <p className="text-gray-400 text-sm mb-6">Vérifiez la configuration d'un utilisateur</p>
+      <p className="text-gray-400 text-sm mb-6">Fill any user address to check their Rent2Repay configuration</p>
       
       <div className="space-y-6">
         {/* Input Section */}
@@ -220,6 +268,31 @@ export default function CheckConfig(): React.ReactElement {
               Configuration for: <AddressDisplay address={userAddress} label="checked-user" color="text-blue-400" />
             </h3>
             
+            {/* Last Repay Timestamp Section */}
+            {timestampInfo && (
+              <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+                <h4 className="text-md font-semibold text-gray-200 mb-3">Last Repay Information</h4>
+                <div className="space-y-2">
+                  <div className="text-sm">
+                    <span className="text-gray-400">Date:</span>{' '}
+                    <span className={`font-mono ${timestampInfo.isPast ? 'text-green-400' : 'text-red-400'}`}>
+                      {timestampInfo.formatted}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    <span>Epoch:</span>{' '}
+                    <span className="font-mono text-gray-300">{timestampInfo.epoch}</span>
+                  </div>
+                  {period !== undefined && typeof period === 'bigint' && (
+                    <div className="text-sm text-gray-400">
+                      <span>Period:</span>{' '}
+                      <span className="font-mono text-orange-400">{period.toString()} seconds</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
             <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
               {userConfig.tokens.map((tokenAddress, index) => {
                 const tokenInfo = getTokenInfo(tokenAddress);
@@ -259,10 +332,12 @@ export default function CheckConfig(): React.ReactElement {
           <h4 className="text-sm font-semibold text-gray-200 mb-2">Instructions</h4>
           <div className="text-xs text-gray-400 space-y-1">
             <p>• Enter a user address to check their Rent2Repay configuration</p>
+            <p>• <strong>Last Repay</strong>: Timestamp of the last repayment (in green if past, red if future)</p>
             <p>• <strong>R2R</strong>: Maximum amount configured for each token</p>
             <p>• <strong>Balance</strong>: Current token balance of the user</p>
             <p>• <strong>Approval</strong>: Approved amount for Rent2Repay contract</p>
             <p>• <strong>Debt</strong>: Current debt amount for the associated debt token</p>
+            <p>• <strong>Period</strong>: Period in seconds for the repayment cycle</p>
           </div>
         </div>
       </div>

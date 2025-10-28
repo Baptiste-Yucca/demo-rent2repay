@@ -140,7 +140,7 @@ export default function TokenHolder() {
   return (
     <div className="card p-8">
       <h2 className="text-2xl font-bold text-white mb-2 font-display">TokenHolder Configuration</h2>
-      <p className="text-gray-400 text-sm mb-6">Configurez vos tokens pour Rent2Repay</p>
+      <p className="text-gray-400 text-sm mb-6">Set your tokens for Rent2Repay</p>
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>

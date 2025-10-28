@@ -9,6 +9,7 @@ import TokenHolder from '@/components/TokenHolder';
 import CheckConfig from '@/components/CheckConfig';
 import Bot from '@/components/Bot';
 import Rent2RepayConfig from '@/components/Rent2RepayConfig';
+import MaintenanceTool from '@/components/MaintenanceTool';
 import WalletConnect from '@/components/WalletConnect';
 import Footer from '@/components/Footer';
 
@@ -55,6 +56,11 @@ export default function Home() {
       id: 'config',
       label: 'Config Rent2Repay',
       component: <Rent2RepayConfig />,
+    },
+    {
+      id: 'maintenance',
+      label: '+',
+      component: <MaintenanceTool />,
     },
   ];
 
