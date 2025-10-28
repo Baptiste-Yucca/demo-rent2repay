@@ -6,7 +6,7 @@ import { RENT2REPAY_ABI, REPAYMENT_TOKENS } from '@/constants';
 import { getTokenInfo } from '@/utils/getTokenInfo';
 
 export default function Bot() {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [userAddress, setUserAddress] = useState('');
   const [selectedToken, setSelectedToken] = useState<string>(REPAYMENT_TOKENS[0].address);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,6 +64,15 @@ export default function Bot() {
   };
 
   const selectedTokenInfo = REPAYMENT_TOKENS.find(token => token.address === selectedToken);
+
+  if (!isConnected) {
+    return (
+      <div className="card p-8 text-center">
+        <h2 className="text-2xl font-bold text-white mb-2 font-display">Bot - Rent2Repay Execution</h2>
+        <p className="text-gray-400 mb-4">Please connect your wallet to use this feature</p>
+      </div>
+    );
+  }
 
   return (
     <div className="card p-8">

@@ -17,7 +17,7 @@ interface ApprovalToken {
 }
 
 export default function TokenHolder() {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [tokens, setTokens] = useState<TokenAmount[]>([
     { token: REPAYMENT_TOKENS[0].address, amount: '' }
   ]);
@@ -136,6 +136,15 @@ export default function TokenHolder() {
     if (seconds < 86400) return `${seconds / 3600} hours`;
     return `${seconds / 86400} days`;
   };
+
+  if (!isConnected) {
+    return (
+      <div className="card p-8 text-center">
+        <h2 className="text-2xl font-bold text-white mb-2 font-display">TokenHolder Configuration</h2>
+        <p className="text-gray-400 mb-4">Please connect your wallet to use this feature</p>
+      </div>
+    );
+  }
 
   return (
     <div className="card p-8">

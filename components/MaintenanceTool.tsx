@@ -17,7 +17,7 @@ const FUNCTION_PERMISSIONS: Record<string, UserRole[]> = {
 };
 
 export default function MaintenanceTool(): React.ReactElement {
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
 
   // Check ADMIN_ROLE
   const { data: hasAdminRole } = useReadContract({
@@ -62,6 +62,15 @@ export default function MaintenanceTool(): React.ReactElement {
 
   const isLoading = hasAdminRole === undefined || hasOperatorRole === undefined || hasEmergencyRole === undefined;
   const hasAnyRole = userRole !== null;
+
+  if (!isConnected) {
+    return (
+      <div className="card p-8 text-center">
+        <h2 className="text-2xl font-bold text-white mb-2 font-display">Maintenance Tools</h2>
+        <p className="text-gray-400 mb-4">Please connect your wallet to use this feature</p>
+      </div>
+    );
+  }
 
   return (
     <div className="card p-8">

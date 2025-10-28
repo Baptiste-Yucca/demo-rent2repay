@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
-import { RENT2REPAY_ABI, ERC20_ABI } from '@/constants';
+import { RENT2REPAY_ABI, ERC20_ABI, REG_TOKEN } from '@/constants';
 import { AddressDisplay } from '@/utils/copyAddress';
 import { normalizeAddresses } from '@/utils/addressUtils';
 import { getTokenInfo, type TokenInfo, formatTokenAmount } from '@/utils/getTokenInfo';
@@ -131,10 +131,33 @@ export default function CheckConfig(): React.ReactElement {
     },
   });
 
+  // Read DAO fee reduction configuration
+  const { data: daoConfig } = useReadContract({
+    address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
+    abi: RENT2REPAY_ABI,
+    functionName: 'getDaoFeeReductionConfiguration',
+    query: {
+      enabled: shouldFetch,
+    },
+  });
+
+  // Read REG_TOKEN balance for the user
+  const { data: regTokenBalance } = useReadContract({
+    address: REG_TOKEN as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: shouldFetch && userAddress ? [userAddress as `0x${string}`] : undefined,
+    query: {
+      enabled: shouldFetch && !!userAddress,
+    },
+  });
+
   console.log('userConfigData', userConfigData);
 
   // Format timestamp to readable date
-  const formatTimestamp = (timestamp: bigint | undefined): { formatted: string; epoch: string; isPast: boolean } | null => {
+  type TimestampInfo = { formatted: string; epoch: string; isPast: boolean };
+  
+  const formatTimestamp = (timestamp: bigint | undefined): TimestampInfo | null => {
     if (!timestamp || typeof timestamp !== 'bigint' || timestamp === BigInt(0)) return null;
     
     const timestampNumber = Number(timestamp);
@@ -158,7 +181,8 @@ export default function CheckConfig(): React.ReactElement {
     };
   };
 
-  const timestampInfo = formatTimestamp(lastRepayTimestamp as bigint | undefined);
+  const timestampInfo: TimestampInfo | null = formatTimestamp(lastRepayTimestamp as bigint | undefined);
+  
   
   // Normalize addresses to lowercase
   const normalizeUserConfig = (data: any): UserConfig | undefined => {
@@ -212,6 +236,15 @@ export default function CheckConfig(): React.ReactElement {
     }, 1000);
   };
 
+  if (!isConnected) {
+    return (
+      <div className="card p-8 text-center">
+        <h2 className="text-2xl font-bold text-white mb-2 font-display">Check User Configuration</h2>
+        <p className="text-gray-400 mb-4">Please connect your wallet to use this feature</p>
+      </div>
+    );
+  }
+
   return (
     <div className="card p-8">
       <h2 className="text-2xl font-bold text-white mb-2 font-display">Check User Configuration</h2>
@@ -262,36 +295,81 @@ export default function CheckConfig(): React.ReactElement {
         )}
 
         {/* Results Section */}
-        {userConfig && userConfig.tokens && userConfig.maxAmounts && (
+        {(userConfig && userConfig.tokens && userConfig.maxAmounts) ? (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-200">
               Configuration for: <AddressDisplay address={userAddress} label="checked-user" color="text-blue-400" />
             </h3>
             
-            {/* Last Repay Timestamp Section */}
-            {timestampInfo && (
-              <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
-                <h4 className="text-md font-semibold text-gray-200 mb-3">Last Repay Information</h4>
-                <div className="space-y-2">
-                  <div className="text-sm">
-                    <span className="text-gray-400">Date:</span>{' '}
-                    <span className={`font-mono ${timestampInfo.isPast ? 'text-green-400' : 'text-red-400'}`}>
-                      {timestampInfo.formatted}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-400">
-                    <span>Epoch:</span>{' '}
-                    <span className="font-mono text-gray-300">{timestampInfo.epoch}</span>
-                  </div>
-                  {period !== undefined && typeof period === 'bigint' && (
-                    <div className="text-sm text-gray-400">
-                      <span>Period:</span>{' '}
-                      <span className="font-mono text-orange-400">{period.toString()} seconds</span>
+            {/* Info Cards Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Last Repay Timestamp Section */}
+              {lastRepayTimestamp !== null && (
+                <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+                  <h4 className="text-md font-semibold text-gray-200 mb-3">Last Repay Information</h4>
+                  <div className="space-y-2">
+                    <div className="text-sm">
+                      <span className="text-gray-400">Date:</span>{' '}
+                      <span className={`font-mono ${timestampInfo.isPast ? 'text-green-400' : 'text-red-400'}`}>
+                        {timestampInfo.formatted}
+                      </span>
                     </div>
-                  )}
+                    <div className="text-sm text-gray-400">
+                      <span>Epoch:</span>{' '}
+                      <span className="font-mono text-gray-300">{timestampInfo.epoch}</span>
+                    </div>
+                    {period !== undefined && typeof period === 'bigint' && (
+                      <div className="text-sm text-gray-400">
+                        <span>Period:</span>{' '}
+                        <span className="font-mono text-orange-400">{period.toString()} seconds</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* REG Token Balance Section */}
+              {daoConfig && Array.isArray(daoConfig) && (
+                <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+                  <h4 className="text-md font-semibold text-gray-200 mb-3">DAO Eligibility</h4>
+                  <div className="space-y-2">
+                    <div className="text-sm">
+                      <span className="text-gray-400">REG Balance:</span>{' '}
+                      <span className={`font-mono ${
+                        typeof regTokenBalance === 'bigint' && 
+                        Array.isArray(daoConfig) && typeof daoConfig[1] === 'bigint' &&
+                        regTokenBalance >= daoConfig[1]
+                          ? 'text-green-400'
+                          : typeof regTokenBalance === 'bigint' ? 'text-red-400' : 'text-gray-400'
+                      }`}>
+                        {typeof regTokenBalance === 'bigint' 
+                          ? regTokenBalance.toString() 
+                          : 'Loading...'}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      <span>Required Minimum:</span>{' '}
+                      <span className="font-mono text-gray-300">
+                        {typeof daoConfig[1] === 'bigint' 
+                          ? daoConfig[1].toString() 
+                          : 'Loading...'}
+                      </span>
+                    </div>
+                    {typeof regTokenBalance === 'bigint' && 
+                     typeof daoConfig[1] === 'bigint' && (
+                      <div className="text-sm">
+                        <span className="text-gray-400">Status:</span>{' '}
+                        <span className={`font-semibold ${
+                          regTokenBalance >= daoConfig[1] ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {regTokenBalance >= daoConfig[1] ? 'Eligible ✓' : 'Not Eligible ✗'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             
             <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
               {userConfig.tokens.map((tokenAddress, index) => {
@@ -316,7 +394,7 @@ export default function CheckConfig(): React.ReactElement {
               </div>
             )}
           </div>
-        )}
+        ) : null}
 
         {/* No Configuration Message */}
         {shouldFetch && !isChecking && !error && (!userConfig || !userConfig.tokens || userConfig.tokens.length === 0) && (

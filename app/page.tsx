@@ -11,6 +11,7 @@ import Bot from '@/components/Bot';
 import Rent2RepayConfig from '@/components/Rent2RepayConfig';
 import MaintenanceTool from '@/components/MaintenanceTool';
 import WalletConnect from '@/components/WalletConnect';
+import ConnectionBanner from '@/components/ConnectionBanner';
 import Footer from '@/components/Footer';
 
 export default function Home() {
@@ -30,10 +31,6 @@ export default function Home() {
         </div>
       </div>
     );
-  }
-
-  if (!isConnected) {
-    return <Dashboard />;
   }
 
   const tabs = [
@@ -66,6 +63,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-dark-900 flex flex-col">
+      <ConnectionBanner />
       <div className="flex-grow max-w-6xl mx-auto px-4 py-8 w-full">
         <div className="card p-8 mb-8">
           <div className="flex justify-between items-center mb-6">

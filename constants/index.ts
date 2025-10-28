@@ -34,6 +34,8 @@ export const DEBT_TOKENS = [
   { symbol: 'DEBT_WXDAI', address: TOKENS.DEBTWXDAI, decimals: 18 },
 ] as const;
 
+export const REG_TOKEN = '0x0AA1e96D2a46Ec6beB2923dE1E61Addf5F5f1dce';
+
 // Contract ABI will be imported from the JSON file
 export { default as RENT2REPAY_ABI } from '../ABI/rent2repay.json';
 export { default as ERC20_ABI } from '../ABI/erc20.json';
