@@ -65,15 +65,6 @@ export default function Bot() {
 
   const selectedTokenInfo = REPAYMENT_TOKENS.find(token => token.address === selectedToken);
 
-  if (!isConnected) {
-    return (
-      <div className="card p-8 text-center">
-        <h2 className="text-2xl font-bold text-white mb-2 font-display">Bot - Rent2Repay Execution</h2>
-        <p className="text-gray-400 mb-4">Please connect your wallet to use this feature</p>
-      </div>
-    );
-  }
-
   return (
     <div className="card p-8">
       <h2 className="text-2xl font-bold text-white mb-2 font-display">Bot - Rent2Repay Execution</h2>

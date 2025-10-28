@@ -109,15 +109,6 @@ export default function Rent2RepayConfig() {
     );
   }
 
-  if (!isConnected) {
-    return (
-      <div className="card p-8 text-center">
-        <h2 className="text-2xl font-bold text-white mb-2 font-display">Rent2Repay Configuration</h2>
-        <p className="text-gray-400 mb-4">Please connect your wallet to view configuration</p>
-      </div>
-    );
-  }
-
   return (
     <div className="card p-8">
       <h2 className="text-2xl font-bold text-white mb-2 font-display">Rent2Repay Configuration</h2>

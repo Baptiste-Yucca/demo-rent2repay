@@ -155,35 +155,34 @@ export default function CheckConfig(): React.ReactElement {
   console.log('userConfigData', userConfigData);
 
   // Format timestamp to readable date
-  type TimestampInfo = { formatted: string; epoch: string; isPast: boolean };
+  type TimestampInfo = {
+    formatted: string;
+    epoch: string;
+    isPast: boolean;
+  };
   
   const formatTimestamp = (timestamp: bigint | undefined): TimestampInfo | null => {
     if (!timestamp || typeof timestamp !== 'bigint' || timestamp === BigInt(0)) return null;
-    
+
     const timestampNumber = Number(timestamp);
-    const date = new Date(timestampNumber * 1000); // Convert from seconds to milliseconds
-    const now = Date.now() / 1000; // Current timestamp in seconds
+    const date = new Date(timestampNumber * 1000); // seconds → ms
+    const now = Date.now() / 1000;
     const isPast = timestampNumber <= now;
-    
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const seconds = String(date.getSeconds()).padStart(2, '0');
-    
+
     const formatted = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    
-    return {
-      formatted,
-      epoch: timestampNumber.toString(),
-      isPast
-    };
+
+    return { formatted, epoch: timestampNumber.toString(), isPast };
   };
 
   const timestampInfo: TimestampInfo | null = formatTimestamp(lastRepayTimestamp as bigint | undefined);
-  
-  
+
   // Normalize addresses to lowercase
   const normalizeUserConfig = (data: any): UserConfig | undefined => {
     if (!data || !Array.isArray(data) || data.length !== 2) return undefined;
@@ -235,15 +234,6 @@ export default function CheckConfig(): React.ReactElement {
       setIsChecking(false);
     }, 1000);
   };
-
-  if (!isConnected) {
-    return (
-      <div className="card p-8 text-center">
-        <h2 className="text-2xl font-bold text-white mb-2 font-display">Check User Configuration</h2>
-        <p className="text-gray-400 mb-4">Please connect your wallet to use this feature</p>
-      </div>
-    );
-  }
 
   return (
     <div className="card p-8">
@@ -304,7 +294,7 @@ export default function CheckConfig(): React.ReactElement {
             {/* Info Cards Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Last Repay Timestamp Section */}
-              {lastRepayTimestamp !== null && (
+              {timestampInfo !== null && (
                 <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
                   <h4 className="text-md font-semibold text-gray-200 mb-3">Last Repay Information</h4>
                   <div className="space-y-2">
