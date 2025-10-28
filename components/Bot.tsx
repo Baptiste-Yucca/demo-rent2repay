@@ -2,11 +2,18 @@
 
 import React, { useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
-import { RENT2REPAY_ABI, REPAYMENT_TOKENS } from '@/constants';
+import { RENT2REPAY_ABI, REPAYMENT_TOKENS, REG_TOKEN } from '@/constants';
 import { getTokenInfo } from '@/utils/getTokenInfo';
 
 export default function Bot() {
   const { address, isConnected } = useAccount();
+  
+  // Include REG token for testing with non-configured tokens
+  const allTokenOptions = [
+    ...REPAYMENT_TOKENS,
+    { symbol: 'ERR', address: REG_TOKEN, decimals: 18 }
+  ];
+
   const [userAddress, setUserAddress] = useState('');
   const [selectedToken, setSelectedToken] = useState<string>(REPAYMENT_TOKENS[0].address);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,7 +70,7 @@ export default function Bot() {
     }
   };
 
-  const selectedTokenInfo = REPAYMENT_TOKENS.find(token => token.address === selectedToken);
+  const selectedTokenInfo = allTokenOptions.find(token => token.address === selectedToken);
 
   return (
     <div className="card p-8">
@@ -99,7 +106,7 @@ export default function Bot() {
             onChange={(e) => setSelectedToken(e.target.value)}
             className="input-field w-full"
           >
-            {REPAYMENT_TOKENS.map((token) => (
+            {allTokenOptions.map((token) => (
               <option key={token.address} value={token.address}>
                 {token.symbol} ({token.address})
               </option>

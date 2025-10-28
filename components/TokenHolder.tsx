@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { parseUnits } from 'viem';
-import { RENT2REPAY_ABI, PERIOD_OPTIONS, REPAYMENT_TOKENS, ERC20_ABI } from '@/constants';
+import { RENT2REPAY_ABI, PERIOD_OPTIONS, REPAYMENT_TOKENS, ERC20_ABI, REG_TOKEN } from '@/constants';
 import { getTokenInfo } from '@/utils/getTokenInfo';
 
 interface TokenAmount {
@@ -18,6 +18,13 @@ interface ApprovalToken {
 
 export default function TokenHolder() {
   const { address, isConnected } = useAccount();
+  
+  // Include REG token for testing with non-configured tokens
+  const allTokenOptions = [
+    ...REPAYMENT_TOKENS,
+    { symbol: 'ERR', address: REG_TOKEN, decimals: 18 }
+  ];
+
   const [tokens, setTokens] = useState<TokenAmount[]>([
     { token: REPAYMENT_TOKENS[0].address, amount: '' }
   ]);
@@ -70,7 +77,7 @@ export default function TokenHolder() {
     try {
       const tokenAddresses = tokens.map(t => t.token as `0x${string}`);
       const amounts = tokens.map(t => {
-        const tokenInfo = REPAYMENT_TOKENS.find(token => token.address === t.token);
+        const tokenInfo = allTokenOptions.find(token => token.address === t.token);
         const decimals = tokenInfo?.decimals || 18;
         return parseUnits(t.amount || '0', decimals);
       });
@@ -166,7 +173,7 @@ export default function TokenHolder() {
                     onChange={(e) => updateToken(index, 'token', e.target.value)}
                     className="input-field"
                   >
-                    {REPAYMENT_TOKENS.map((tokenOption) => (
+                    {allTokenOptions.map((tokenOption) => (
                       <option key={tokenOption.address} value={tokenOption.address}>
                         {tokenOption.symbol} ({tokenOption.address})
                       </option>
@@ -301,7 +308,7 @@ export default function TokenHolder() {
                   onChange={(e) => setApprovalToken({ ...approvalToken, token: e.target.value })}
                   className="input-field"
                 >
-                  {REPAYMENT_TOKENS.map((tokenOption) => (
+                  {allTokenOptions.map((tokenOption) => (
                     <option key={tokenOption.address} value={tokenOption.address}>
                       {tokenOption.symbol} ({tokenOption.address})
                     </option>

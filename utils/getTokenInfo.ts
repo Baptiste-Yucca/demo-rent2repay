@@ -1,4 +1,4 @@
-import { TOKENS, REPAYMENT_TOKENS } from '@/constants';
+import { TOKENS, REPAYMENT_TOKENS, REG_TOKEN } from '@/constants';
 import { formatUnits } from 'viem';
 
 export interface TokenInfo {
@@ -30,6 +30,15 @@ export const formatTokenAmount = (amount: bigint, decimals: number): string => {
  */
 export const getTokenInfo = (tokenAddress: string): TokenInfo => {
   const normalizedTokenAddress = tokenAddress.toLowerCase();
+  
+  // Check if it's the REG token (ERR)
+  if (REG_TOKEN.toLowerCase() === normalizedTokenAddress) {
+    return {
+      address: tokenAddress,
+      symbol: 'ERR',
+      decimals: 18,
+    };
+  }
   
   // Check in REPAYMENT_TOKENS first
   const repaymentToken = REPAYMENT_TOKENS.find(token => 
