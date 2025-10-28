@@ -92,42 +92,19 @@ const TokenInfo = ({
   );
 };
 
-export default function CheckConfig(): React.ReactElement {
-  const { address, isConnected } = useAccount();
+export default function CheckConfig() {
   const [userAddress, setUserAddress] = useState('');
   const [isChecking, setIsChecking] = useState(false);
   const [shouldFetch, setShouldFetch] = useState(false);
 
   // Read user configuration
-  const { data: userConfigData, isLoading, error } = useReadContract({
+  const { data: userConfigData, error } = useReadContract({
     address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
     abi: RENT2REPAY_ABI,
     functionName: 'getUserConfigs',
     args: shouldFetch && userAddress ? [userAddress as `0x${string}`] : undefined,
     query: {
       enabled: shouldFetch && !!userAddress, // Only fetch when manually triggered
-    },
-  });
-
-  // Read last repay timestamp
-  const { data: lastRepayTimestamp } = useReadContract({
-    address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
-    abi: RENT2REPAY_ABI,
-    functionName: 'getLastRepayTimestamps',
-    args: shouldFetch && userAddress ? [userAddress as `0x${string}`] : undefined,
-    query: {
-      enabled: shouldFetch && !!userAddress,
-    },
-  });
-
-  // Read periodicity for user
-  const { data: period } = useReadContract({
-    address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
-    abi: RENT2REPAY_ABI,
-    functionName: 'getPeriodicity',
-    args: shouldFetch && userAddress ? [userAddress as `0x${string}`] : undefined,
-    query: {
-      enabled: shouldFetch && !!userAddress,
     },
   });
 
@@ -153,35 +130,6 @@ export default function CheckConfig(): React.ReactElement {
   });
 
   console.log('userConfigData', userConfigData);
-
-  // Format timestamp to readable date
-  type TimestampInfo = {
-    formatted: string;
-    epoch: string;
-    isPast: boolean;
-  };
-  
-  const formatTimestamp = (timestamp: bigint | undefined): TimestampInfo | null => {
-    if (!timestamp || typeof timestamp !== 'bigint' || timestamp === BigInt(0)) return null;
-
-    const timestampNumber = Number(timestamp);
-    const date = new Date(timestampNumber * 1000); // seconds → ms
-    const now = Date.now() / 1000;
-    const isPast = timestampNumber <= now;
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-
-    const formatted = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-
-    return { formatted, epoch: timestampNumber.toString(), isPast };
-  };
-
-  const timestampInfo: TimestampInfo | null = formatTimestamp(lastRepayTimestamp as bigint | undefined);
 
   // Normalize addresses to lowercase
   const normalizeUserConfig = (data: any): UserConfig | undefined => {
@@ -292,34 +240,9 @@ export default function CheckConfig(): React.ReactElement {
             </h3>
             
             {/* Info Cards Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Last Repay Timestamp Section */}
-              {timestampInfo !== null && (
-                <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
-                  <h4 className="text-md font-semibold text-gray-200 mb-3">Last Repay Information</h4>
-                  <div className="space-y-2">
-                    <div className="text-sm">
-                      <span className="text-gray-400">Date:</span>{' '}
-                      <span className={`font-mono ${timestampInfo.isPast ? 'text-green-400' : 'text-red-400'}`}>
-                        {timestampInfo.formatted}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      <span>Epoch:</span>{' '}
-                      <span className="font-mono text-gray-300">{timestampInfo.epoch}</span>
-                    </div>
-                    {period !== undefined && typeof period === 'bigint' && (
-                      <div className="text-sm text-gray-400">
-                        <span>Period:</span>{' '}
-                        <span className="font-mono text-orange-400">{period.toString()} seconds</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
+            <div className="grid grid-cols-1 gap-4">
               {/* REG Token Balance Section */}
-              {daoConfig && Array.isArray(daoConfig) && (
+              {daoConfig && Array.isArray(daoConfig) ? (
                 <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
                   <h4 className="text-md font-semibold text-gray-200 mb-3">DAO Eligibility</h4>
                   <div className="space-y-2">
@@ -358,7 +281,7 @@ export default function CheckConfig(): React.ReactElement {
                     )}
                   </div>
                 </div>
-              )}
+              ) : null}
             </div>
             
             <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
@@ -400,12 +323,10 @@ export default function CheckConfig(): React.ReactElement {
           <h4 className="text-sm font-semibold text-gray-200 mb-2">Instructions</h4>
           <div className="text-xs text-gray-400 space-y-1">
             <p>• Enter a user address to check their Rent2Repay configuration</p>
-            <p>• <strong>Last Repay</strong>: Timestamp of the last repayment (in green if past, red if future)</p>
             <p>• <strong>R2R</strong>: Maximum amount configured for each token</p>
             <p>• <strong>Balance</strong>: Current token balance of the user</p>
             <p>• <strong>Approval</strong>: Approved amount for Rent2Repay contract</p>
             <p>• <strong>Debt</strong>: Current debt amount for the associated debt token</p>
-            <p>• <strong>Period</strong>: Period in seconds for the repayment cycle</p>
           </div>
         </div>
       </div>
