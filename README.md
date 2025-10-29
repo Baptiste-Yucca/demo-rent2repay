@@ -83,5 +83,5 @@ npm run build
 npm start
 ```
 
-MIT Licence
+MIT License
 Dont hesitate to contact me on Telegram @BaptisteYucca
