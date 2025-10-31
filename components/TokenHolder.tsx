@@ -332,18 +332,18 @@ export default function TokenHolder() {
         </div>
       </div>
 
-      {/* Revoke All Section */}
+      {/* Revoke Rent2Repay Section */}
       <div className="border-t border-dark-600 pt-6">
-        <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Revoke All Approvals</h3>
+        <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Revoke Rent2Repay</h3>
         <p className="text-sm text-gray-400 mb-4">
-          This will revoke all Rent2Repay approvals for all tokens.
+          This will revoke all Rent2Repay for the user.
         </p>
         <button
           onClick={handleRevokeAll}
           disabled={isPending || isConfirming || isRevoking}
           className="btn-danger w-full py-3 px-4"
         >
-          {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Revoke All Approvals'}
+          {isPending ? 'Confirming...' : isConfirming ? 'Processing...' : 'Revoke Rent2Repay'}
         </button>
       </div>
 
