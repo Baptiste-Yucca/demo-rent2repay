@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { normalizeAddress } from '@/utils/addressUtils';
 
 export default function WalletConnect() {
   const { address, isConnected } = useAccount();

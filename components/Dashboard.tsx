@@ -6,7 +6,6 @@ import { useAccount } from 'wagmi';
 import { getUSDCBalance, getWXDAIBalance } from '@/lib/viem';
 import WalletConnect from './WalletConnect';
 import { AddressDisplay } from '@/utils/copyAddress';
-import { normalizeAddress } from '@/utils/addressUtils';
 
 interface TokenBalance {
   balance: bigint;

@@ -1,20 +1,23 @@
+import { EvmAddress } from '@/lib/domain/EvmAddress';
+
 /**
- * Normalize an Ethereum address to lowercase
+ * Normalize an Ethereum address to EvmAddress Value Object
  * @param address - The address to normalize
- * @returns The normalized address in lowercase
+ * @returns The EvmAddress Value Object or undefined if address is empty
  */
-export const normalizeAddress = (address: string | undefined): string => {
-  if (!address) return '';
-  return address.toLowerCase();
+export const normalizeAddress = (address: string | undefined): EvmAddress | undefined => {
+  return EvmAddress.fromOptional(address);
 };
 
 /**
- * Normalize an array of Ethereum addresses to lowercase
+ * Normalize an array of Ethereum addresses to EvmAddress Value Objects
  * @param addresses - Array of addresses to normalize
- * @returns Array of normalized addresses in lowercase
+ * @returns Array of EvmAddress Value Objects (filters out invalid addresses)
  */
-export const normalizeAddresses = (addresses: string[]): string[] => {
-  return addresses.map(address => normalizeAddress(address));
+export const normalizeAddresses = (addresses: string[]): EvmAddress[] => {
+  return addresses
+    .map(address => EvmAddress.fromOptional(address))
+    .filter((addr): addr is EvmAddress => addr !== undefined);
 };
 
 /**
@@ -23,6 +26,13 @@ export const normalizeAddresses = (addresses: string[]): string[] => {
  * @param address2 - Second address
  * @returns True if addresses are equal (case-insensitive)
  */
-export const isAddressEqual = (address1: string, address2: string): boolean => {
-  return normalizeAddress(address1) === normalizeAddress(address2);
+export const isAddressEqual = (address1: string | EvmAddress, address2: string | EvmAddress): boolean => {
+  const addr1 = address1 instanceof EvmAddress ? address1 : EvmAddress.fromOptional(address1);
+  const addr2 = address2 instanceof EvmAddress ? address2 : EvmAddress.fromOptional(address2);
+  
+  if (!addr1 || !addr2) {
+    return false;
+  }
+  
+  return addr1.equals(addr2);
 };

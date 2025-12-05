@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { normalizeAddress } from './addressUtils';
+import { EvmAddress } from '@/lib/domain/EvmAddress';
 
 export const useCopyAddress = () => {
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
 
-  const copyAddress = async (address: string, label: string) => {
+  const copyAddress = async (address: string | EvmAddress, label: string) => {
     try {
-      await navigator.clipboard.writeText(normalizeAddress(address));
+      const evmAddress = address instanceof EvmAddress ? address : normalizeAddress(address);
+      if (!evmAddress) {
+        console.error('Invalid address provided');
+        return;
+      }
+      await navigator.clipboard.writeText(evmAddress.value());
       setCopiedAddress(label);
       setTimeout(() => setCopiedAddress(null), 2000);
     } catch (err) {
@@ -23,17 +29,19 @@ export const AddressDisplay = ({
   color = "text-blue-400",
   showFullAddress = false 
 }: { 
-  address: string | undefined, 
+  address: string | EvmAddress | undefined, 
   label: string, 
   color?: string,
   showFullAddress?: boolean 
 }) => {
   const { copiedAddress, copyAddress } = useCopyAddress();
   
-  if (!address) return <span className="text-gray-400">Loading...</span>;
+  const evmAddress = address instanceof EvmAddress ? address : normalizeAddress(address);
+  
+  if (!evmAddress) return <span className="text-gray-400">Loading...</span>;
   
   const isCopied = copiedAddress === label;
-  const displayAddress = showFullAddress ? normalizeAddress(address) : `${normalizeAddress(address).slice(0, 6)}...${normalizeAddress(address).slice(-4)}`;
+  const displayAddress = showFullAddress ? evmAddress.value() : evmAddress.toShortString();
   
   return (
     <div className="flex items-center">
@@ -41,7 +49,7 @@ export const AddressDisplay = ({
         {displayAddress}
       </span>
       <button
-        onClick={() => copyAddress(address, label)}
+        onClick={() => copyAddress(evmAddress, label)}
         className="ml-2 p-1 text-gray-400 hover:text-white transition-colors"
         title="Copy address"
       >

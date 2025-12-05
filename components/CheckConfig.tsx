@@ -153,7 +153,7 @@ export default function CheckConfig() {
 
   console.log('userConfigData', userConfigData);
 
-  // Normalize addresses to lowercase
+  // Normalize addresses to EvmAddress Value Objects
   const normalizeUserConfig = (data: any): UserConfig | undefined => {
     if (!data || !Array.isArray(data) || data.length !== 2) return undefined;
     
@@ -161,7 +161,7 @@ export default function CheckConfig() {
     if (!Array.isArray(tokens) || !Array.isArray(maxAmounts)) return undefined;
     
     return {
-      tokens: normalizeAddresses(tokens),
+      tokens: normalizeAddresses(tokens).map(addr => addr.value()),
       maxAmounts: maxAmounts.map((amount: bigint) => amount)
     };
   };

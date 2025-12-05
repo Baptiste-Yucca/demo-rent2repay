@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { RENT2REPAY_ABI } from '@/constants';
 import { normalizeAddress } from '@/utils/addressUtils';
+import { EvmAddress } from '@/lib/domain/EvmAddress';
 
 // Component for clickable address with copy functionality and GnosisScan link
 const ClickableAddressDisplay = ({ 
@@ -12,16 +13,18 @@ const ClickableAddressDisplay = ({
   color = "text-blue-400",
   showFullAddress = false 
 }: { 
-  address: string | undefined, 
+  address: string | EvmAddress | undefined, 
   label: string, 
   color?: string,
   showFullAddress?: boolean 
 }) => {
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
 
-  const copyAddress = async (address: string, label: string) => {
+  const evmAddress = address instanceof EvmAddress ? address : normalizeAddress(address);
+
+  const copyAddress = async (address: EvmAddress, label: string) => {
     try {
-      await navigator.clipboard.writeText(normalizeAddress(address));
+      await navigator.clipboard.writeText(address.value());
       setCopiedAddress(label);
       setTimeout(() => setCopiedAddress(null), 2000);
     } catch (err) {
@@ -29,27 +32,26 @@ const ClickableAddressDisplay = ({
     }
   };
 
-  const openGnosisScan = (address: string) => {
-    const normalizedAddr = normalizeAddress(address);
-    window.open(`https://gnosisscan.io/address/${normalizedAddr}`, '_blank');
+  const openGnosisScan = (address: EvmAddress) => {
+    window.open(`https://gnosisscan.io/address/${address.value()}`, '_blank');
   };
 
-  if (!address) return <span className="text-gray-400">Loading...</span>;
+  if (!evmAddress) return <span className="text-gray-400">Loading...</span>;
   
   const isCopied = copiedAddress === label;
-  const displayAddress = showFullAddress ? normalizeAddress(address) : `${normalizeAddress(address).slice(0, 6)}...${normalizeAddress(address).slice(-4)}`;
+  const displayAddress = showFullAddress ? evmAddress.value() : evmAddress.toShortString();
   
   return (
     <div className="flex items-center">
       <button
-        onClick={() => openGnosisScan(address)}
+        onClick={() => openGnosisScan(evmAddress)}
         className={`font-mono text-xs ${color} hover:underline cursor-pointer`}
         title="View on GnosisScan"
       >
         {displayAddress}
       </button>
       <button
-        onClick={() => copyAddress(address, label)}
+        onClick={() => copyAddress(evmAddress, label)}
         className="ml-2 p-1 text-gray-400 hover:text-white transition-colors"
         title="Copy address"
       >
