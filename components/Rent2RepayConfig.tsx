@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { RENT2REPAY_ABI } from '@/constants';
 import { normalizeAddress } from '@/utils/addressUtils';
-import { EvmAddress } from '@/lib/domain/EvmAddress';
+import { EvmAddress } from '@/domain/EvmAddress';
 
 // Component for clickable address with copy functionality and GnosisScan link
 const ClickableAddressDisplay = ({ 

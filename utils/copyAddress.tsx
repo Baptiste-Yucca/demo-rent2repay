@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { normalizeAddress } from './addressUtils';
-import { EvmAddress } from '@/lib/domain/EvmAddress';
+import { EvmAddress } from '@/domain/EvmAddress';
 
 export const useCopyAddress = () => {
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);

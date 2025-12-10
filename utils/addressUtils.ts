@@ -1,4 +1,4 @@
-import { EvmAddress } from '@/lib/domain/EvmAddress';
+import { EvmAddress } from '@/domain/EvmAddress';
 
 /**
  * Normalize an Ethereum address to EvmAddress Value Object
