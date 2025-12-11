@@ -13,7 +13,6 @@ export default function AppConfigBar({ showContractAddress = false }: AppConfigB
     <div className="card p-8 mb-8">
       <div className="flex justify-between items-center mb-6">
         <AppHeader />
-        <WalletConnect />
       </div>
     </div>
   );

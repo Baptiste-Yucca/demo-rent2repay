@@ -108,6 +108,20 @@ export default function Dashboard() {
     { label: 'DEBT_WXDAI', balance: debtWxdaiBalance, decimals: 18 },
   ];
 
+  // Composant factorisé pour l'affichage du wallet connecté (comportement prévu)
+  const WalletSection = () => {
+    return (
+      <div className="bg-dark-700 rounded-lg p-4 border border-dark-600 hover:border-primary-500/30 transition-colors">
+        <h2 className="text-sm font-semibold text-gray-200 mb-2 font-display">
+          Connected Wallet
+        </h2>
+        <div className="text-xs text-gray-300">
+          <AddressDisplay address={address} label="wallet-address" color="text-primary-500" showFullAddress={false} />
+        </div>
+      </div>
+    );
+  };
+
   if (!mounted) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -121,22 +135,16 @@ export default function Dashboard() {
     );
   }
 
+  // Cas non prévu : utilisateur non connecté - afficher uniquement WalletConnect
   if (!isConnected) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="w-full card p-8 text-center">
-          <h1 className="text-2xl font-bold text-white mb-4 font-display">
-            Rent2Repay Demo
-          </h1>
-          <p className="text-gray-300 mb-6">
-            Connect your wallet to test the Rent2Repay smart contract on Gnosis Chain
-          </p>
-          <WalletConnect />
-        </div>
+      <div className="w-full flex flex-col h-full">
+        <WalletConnect />
       </div>
     );
   }
 
+  // Comportement prévu : utilisateur connecté - afficher le Dashboard complet
   return (
     <div className="w-full flex flex-col h-full">
       <div className="card p-6 mb-6">
@@ -146,23 +154,7 @@ export default function Dashboard() {
         <p className="text-primary-500 font-semibold text-xs mb-4">WALLET INFORMATION</p>
         
         <div className="space-y-4">
-          <div className="bg-dark-700 rounded-lg p-4 border border-dark-600 hover:border-primary-500/30 transition-colors">
-            <h2 className="text-sm font-semibold text-gray-200 mb-2 font-display">
-              Connected Wallet
-            </h2>
-            <div className="text-xs text-gray-300">
-              <AddressDisplay address={address} label="wallet-address" color="text-primary-500" showFullAddress={false} />
-            </div>
-          </div>
-          
-          <div className="bg-dark-700 rounded-lg p-4 border border-dark-600 hover:border-primary-500/30 transition-colors">
-            <h2 className="text-sm font-semibold text-gray-200 mb-2 font-display">
-              Wallet Actions
-            </h2>
-            <div className="space-y-2">
-              <WalletConnect />
-            </div>
-          </div>
+          <WalletSection />
         </div>
       </div>
 

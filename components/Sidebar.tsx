@@ -54,7 +54,7 @@ export default function Sidebar({ defaultOpen = true, children }: SidebarProps) 
         <button
           onClick={toggleSidebar}
           className={`
-            fixed left-0 top-1/2 -translate-y-1/2 z-50
+            fixed left-0 bottom-4 z-50
             bg-dark-700 hover:bg-dark-600
             border border-dark-600 hover:border-primary-500
             rounded-r-lg p-2

@@ -18,7 +18,7 @@ export default function ContractInfo({
 
   return (
     <p className="text-sm text-gray-400">
-      <strong className="text-gray-300">Contract:</strong>{' '}
+      <strong className="text-gray-300">R2R proxy:</strong>{' '}
       {evmAddress && showAddress ? (
         <span className="inline-flex items-center">
           <AddressDisplay 
