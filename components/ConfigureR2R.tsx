@@ -19,7 +19,7 @@ interface UserConfig {
   maxAmounts: bigint[];
 }
 
-type ConfigStep = 'check' | 'token-selection' | 'timestamp-selection' | 'approval' | 'summary' | 'complete';
+type ConfigStep = 'check' | 'token-selection' | 'periodicity-selection' | 'timestamp-selection' | 'approval' | 'summary' | 'complete';
 
 export default function ConfigureR2R() {
   const { address, isConnected } = useAccount();
@@ -29,6 +29,9 @@ export default function ConfigureR2R() {
   const [configStep, setConfigStep] = useState<ConfigStep>('check');
   const [configuredTokens, setConfiguredTokens] = useState<TokenConfig[]>([]);
   const [currentTokenIndex, setCurrentTokenIndex] = useState(0);
+  const [selectedPeriod, setSelectedPeriod] = useState<number>(5); // Default to 5 seconds (minimum)
+  const [customPeriod, setCustomPeriod] = useState<string>('');
+  const [useCustomPeriod, setUseCustomPeriod] = useState(false);
   const [selectedTimestamp, setSelectedTimestamp] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -120,12 +123,27 @@ export default function ConfigureR2R() {
     const newTokens = [...configuredTokens, { token, amount }];
     setConfiguredTokens(newTokens);
     setCurrentTokenIndex(newTokens.length);
-    
-    // If max tokens reached, move to timestamp
-    if (newTokens.length >= 4) {
-      setConfigStep('timestamp-selection');
+    // Stay on token selection modal - user can add more or continue
+  };
+
+  const handleContinueWithCurrentTokens = () => {
+    // User has at least 1 token configured, move to periodicity selection
+    if (configuredTokens.length > 0) {
+      setConfigStep('periodicity-selection');
     }
-    // Otherwise, modal will ask if user wants to add more
+  };
+
+  const handlePeriodicitySelected = () => {
+    let finalPeriod = selectedPeriod;
+    
+    if (useCustomPeriod && customPeriod) {
+      const customValue = parseInt(customPeriod, 10);
+      // Ensure minimum of 5 seconds (Gnosis block time)
+      finalPeriod = Math.max(5, customValue);
+    }
+    
+    setSelectedPeriod(finalPeriod);
+    setConfigStep('timestamp-selection');
   };
 
   const handleTimestampSelected = (useASAP: boolean) => {
@@ -184,7 +202,7 @@ export default function ConfigureR2R() {
       address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
       abi: RENT2REPAY_ABI,
       functionName: 'configureRent2Repay',
-      args: [tokenAddresses, amounts, BigInt(0), BigInt(selectedTimestamp)],
+      args: [tokenAddresses, amounts, BigInt(selectedPeriod), BigInt(selectedTimestamp)],
     });
 
     setConfigStep('complete');
@@ -293,7 +311,23 @@ export default function ConfigureR2R() {
         onClose={() => setConfigStep('check')}
         configuredTokens={configuredTokens}
         currentIndex={currentTokenIndex}
-        onContinueToTimestamp={() => setConfigStep('timestamp-selection')}
+        onContinueToTimestamp={handleContinueWithCurrentTokens}
+      />
+    );
+  }
+
+  // Periodicity selection modal
+  if (configStep === 'periodicity-selection') {
+    return (
+      <PeriodicitySelectionModal
+        selectedPeriod={selectedPeriod}
+        customPeriod={customPeriod}
+        useCustomPeriod={useCustomPeriod}
+        onPeriodChange={setSelectedPeriod}
+        onCustomPeriodChange={setCustomPeriod}
+        onUseCustomChange={setUseCustomPeriod}
+        onContinue={handlePeriodicitySelected}
+        onBack={() => setConfigStep('token-selection')}
       />
     );
   }
@@ -337,6 +371,7 @@ export default function ConfigureR2R() {
     return (
       <SummaryStep
         configuredTokens={configuredTokens}
+        selectedPeriod={selectedPeriod}
         selectedTimestamp={selectedTimestamp}
         onSubmit={handleSubmitConfiguration}
         onBack={() => setConfigStep('timestamp-selection')}
@@ -382,6 +417,8 @@ function TokenSelectionModal({
 }) {
   const [selectedToken, setSelectedToken] = useState(REPAYMENT_TOKENS[0].address);
   const [amount, setAmount] = useState('');
+  const [justConfigured, setJustConfigured] = useState(false);
+  const [lastConfiguredToken, setLastConfiguredToken] = useState<{ token: string; amount: string } | null>(null);
 
   const availableTokens = REPAYMENT_TOKENS.filter(
     token => !configuredTokens.some(ct => ct.token.toLowerCase() === token.address.toLowerCase())
@@ -397,42 +434,125 @@ function TokenSelectionModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedToken && amount) {
+      const tokenInfo = REPAYMENT_TOKENS.find(t => t.address === selectedToken);
+      setLastConfiguredToken({ token: selectedToken, amount });
       onConfigure(selectedToken, amount);
+      setJustConfigured(true);
       // Reset form for next token
-      setSelectedToken(availableTokens.find(t => t.address !== selectedToken)?.address || availableTokens[0]?.address || REPAYMENT_TOKENS[0].address);
+      if (availableTokens.length > 1) {
+        const nextToken = availableTokens.find(t => t.address !== selectedToken);
+        setSelectedToken(nextToken?.address || availableTokens[0]?.address || REPAYMENT_TOKENS[0].address);
+      }
       setAmount('');
     }
   };
 
   const canAddMore = configuredTokens.length < 4 && availableTokens.length > 0;
+  const hasAtLeastOne = configuredTokens.length > 0;
+
+  // Show confirmation message after configuring a token
+  if (justConfigured && lastConfiguredToken) {
+    const tokenInfo = REPAYMENT_TOKENS.find(t => t.address === lastConfiguredToken.token);
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-white font-display">Token Added</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-white">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
+              <p className="text-green-400 text-sm">
+                <strong>{tokenInfo?.symbol}</strong> added with amount <strong>{lastConfiguredToken.amount}</strong>
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-gray-300 text-sm">
+                <strong>{configuredTokens.length}</strong> token{configuredTokens.length > 1 ? 's' : ''} configured
+              </p>
+              {canAddMore && (
+                <p className="text-gray-400 text-xs">
+                  You can add up to 4 tokens total
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3 pt-4">
+              {canAddMore && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setJustConfigured(false);
+                    setLastConfiguredToken(null);
+                  }}
+                  className="btn-primary w-full py-2"
+                >
+                  Add Another Token
+                </button>
+              )}
+              {hasAtLeastOne && (
+                <button
+                  type="button"
+                  onClick={onContinueToTimestamp}
+                  className="btn-secondary w-full py-2"
+                >
+                  Continue ({configuredTokens.length}/4)
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white font-display">
-            Configure Token {currentIndex + 1} {configuredTokens.length < 4 ? `(Max 4)` : ''}
+            {hasAtLeastOne 
+              ? `Configure Token ${currentIndex + 1} (${configuredTokens.length} configured, Max 4)`
+              : `Configure Token ${currentIndex + 1} (Max 4)`
+            }
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {hasAtLeastOne && (
+          <div className="mb-4 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+            <p className="text-blue-300 text-xs">
+              {configuredTokens.length} token{configuredTokens.length > 1 ? 's' : ''} configured. Add more or continue.
+            </p>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-200 mb-2">
-              Which token do you want to configure?
+              Select token
             </label>
             <select
               value={selectedToken}
               onChange={(e) => setSelectedToken(e.target.value)}
               className="input-field w-full"
+              disabled={availableTokens.length === 0}
             >
-              {availableTokens.map((token) => (
-                <option key={token.address} value={token.address}>
-                  {token.symbol}
-                </option>
-              ))}
+              {availableTokens.length > 0 ? (
+                availableTokens.map((token) => (
+                  <option key={token.address} value={token.address}>
+                    {token.symbol}
+                  </option>
+                ))
+              ) : (
+                <option>No more tokens available</option>
+              )}
             </select>
           </div>
 
@@ -451,19 +571,23 @@ function TokenSelectionModal({
             />
           </div>
 
-          <div className="flex gap-4">
-            <button type="submit" className="btn-primary flex-1 py-2" disabled={!canAddMore && configuredTokens.length > 0}>
-              {canAddMore ? 'Configure' : 'Max Tokens Reached'}
+          <div className="flex flex-col gap-3">
+            <button 
+              type="submit" 
+              className="btn-primary w-full py-2" 
+              disabled={!canAddMore || availableTokens.length === 0}
+            >
+              {canAddMore ? 'Add Token' : 'Maximum reached (4/4)'}
             </button>
-            {configuredTokens.length > 0 && (
-              <button
-                type="button"
-                onClick={onContinueToTimestamp}
-                className="btn-secondary flex-1 py-2"
-              >
-                Continue to Next Step
-              </button>
-            )}
+              {hasAtLeastOne && (
+                <button
+                  type="button"
+                  onClick={onContinueToTimestamp}
+                  className="btn-secondary w-full py-2"
+                >
+                  Continue ({configuredTokens.length}/4)
+                </button>
+              )}
           </div>
         </form>
       </div>
@@ -496,7 +620,7 @@ function TimestampSelectionModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-white font-display">When should Rent2Repay activate?</h3>
+          <h3 className="text-xl font-bold text-white font-display">When should Rent2Repay start?</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X className="w-5 h-5" />
           </button>
@@ -511,7 +635,7 @@ function TimestampSelectionModal({
                 onChange={() => setUseASAP(true)}
                 className="w-4 h-4"
               />
-              <span className="text-gray-200">ASAP (As Soon As Possible)</span>
+              <span className="text-gray-200">As soon as possible</span>
             </label>
           </div>
 
@@ -523,7 +647,7 @@ function TimestampSelectionModal({
                 onChange={() => setUseASAP(false)}
                 className="w-4 h-4"
               />
-              <span className="text-gray-200">Schedule for later</span>
+              <span className="text-gray-200">Schedule for a specific date and time</span>
             </label>
 
             {!useASAP && (
@@ -675,8 +799,8 @@ function ApprovalStep({
 
   return (
     <div className="card p-8">
-      <h2 className="text-2xl font-bold text-white mb-4 font-display">Token Approvals Required</h2>
-      <p className="text-gray-400 mb-6">You need to approve the following tokens before configuring Rent2Repay:</p>
+        <h2 className="text-2xl font-bold text-white mb-4 font-display">Token Approvals Required</h2>
+        <p className="text-gray-400 mb-6">Approve the following tokens to allow Rent2Repay to use them:</p>
 
       <div className="space-y-4">
         {configuredTokens.map((tokenConfig) => (
@@ -695,32 +819,181 @@ function ApprovalStep({
   );
 }
 
+// Periodicity Selection Modal Component
+function PeriodicitySelectionModal({
+  selectedPeriod,
+  customPeriod,
+  useCustomPeriod,
+  onPeriodChange,
+  onCustomPeriodChange,
+  onUseCustomChange,
+  onContinue,
+  onBack,
+}: {
+  selectedPeriod: number;
+  customPeriod: string;
+  useCustomPeriod: boolean;
+  onPeriodChange: (period: number) => void;
+  onCustomPeriodChange: (period: string) => void;
+  onUseCustomChange: (use: boolean) => void;
+  onContinue: () => void;
+  onBack: () => void;
+}) {
+  const periodOptions = [
+    { label: '5 seconds (minimum)', value: 5 },
+    { label: '1 hour', value: 3600 },
+    { label: '1 day', value: 86400 },
+    { label: '1 week', value: 604800 },
+    { label: '1 month', value: 2592000 },
+    { label: 'Other', value: -1 },
+  ];
+
+  const formatPeriod = (seconds: number): string => {
+    if (seconds < 60) return `${seconds} second${seconds !== 1 ? 's' : ''}`;
+    if (seconds < 3600) return `${seconds / 60} minute${seconds / 60 !== 1 ? 's' : ''}`;
+    if (seconds < 86400) return `${seconds / 3600} hour${seconds / 3600 !== 1 ? 's' : ''}`;
+    if (seconds < 604800) return `${seconds / 86400} day${seconds / 86400 !== 1 ? 's' : ''}`;
+    if (seconds < 2592000) return `${seconds / 604800} week${seconds / 604800 !== 1 ? 's' : ''}`;
+    return `${seconds / 2592000} month${seconds / 2592000 !== 1 ? 's' : ''}`;
+  };
+
+  const handleCustomPeriodChange = (value: string) => {
+    onCustomPeriodChange(value);
+    const numValue = parseInt(value, 10);
+    if (!isNaN(numValue) && numValue > 0) {
+      // Ensure minimum of 5 seconds
+      const finalValue = Math.max(5, numValue);
+      onPeriodChange(finalValue);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-white font-display">Select Repayment Period</h3>
+          <button onClick={onBack} className="text-gray-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <p className="text-gray-300 text-sm">
+            Choose how often Rent2Repay should execute. This applies to all configured tokens.
+          </p>
+
+          <div className="space-y-2">
+            {periodOptions.map((option) => (
+              <label key={option.value} className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={!useCustomPeriod && selectedPeriod === option.value}
+                  onChange={() => {
+                    if (option.value === -1) {
+                      onUseCustomChange(true);
+                    } else {
+                      onUseCustomChange(false);
+                      onPeriodChange(option.value);
+                    }
+                  }}
+                  className="w-4 h-4"
+                />
+                <span className="text-gray-200">{option.label}</span>
+              </label>
+            ))}
+          </div>
+
+          {useCustomPeriod && (
+            <div className="ml-7 space-y-2">
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Custom period (in seconds)
+              </label>
+              <input
+                type="number"
+                min="5"
+                step="1"
+                value={customPeriod}
+                onChange={(e) => handleCustomPeriodChange(e.target.value)}
+                placeholder="Enter seconds (minimum 5)"
+                className="input-field w-full"
+              />
+              {customPeriod && !isNaN(parseInt(customPeriod, 10)) && (
+                <p className="text-xs text-gray-400">
+                  {formatPeriod(selectedPeriod)} (minimum 5 seconds for Gnosis block time)
+                </p>
+              )}
+            </div>
+          )}
+
+          {!useCustomPeriod && (
+            <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+              <p className="text-blue-300 text-xs">
+                Selected: {formatPeriod(selectedPeriod)}
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-4 pt-4">
+            <button onClick={onBack} className="btn-secondary flex-1 py-2">
+              Back
+            </button>
+            <button
+              onClick={onContinue}
+              disabled={useCustomPeriod && (!customPeriod || parseInt(customPeriod, 10) < 5)}
+              className="btn-primary flex-1 py-2"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Summary Step Component
 function SummaryStep({
   configuredTokens,
+  selectedPeriod,
   selectedTimestamp,
   onSubmit,
   onBack,
   isPending,
 }: {
   configuredTokens: TokenConfig[];
+  selectedPeriod: number;
   selectedTimestamp: number | null;
   onSubmit: () => void;
   onBack: () => void;
   isPending: boolean;
 }) {
   const activationDate = selectedTimestamp
-    ? new Date(selectedTimestamp * 1000).toLocaleString('fr-FR')
-    : 'ASAP';
+    ? new Date(selectedTimestamp * 1000).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'As soon as possible';
+
+  const formatPeriod = (seconds: number): string => {
+    if (seconds < 60) return `${seconds} second${seconds !== 1 ? 's' : ''}`;
+    if (seconds < 3600) return `${seconds / 60} minute${seconds / 60 !== 1 ? 's' : ''}`;
+    if (seconds < 86400) return `${seconds / 3600} hour${seconds / 3600 !== 1 ? 's' : ''}`;
+    if (seconds < 604800) return `${seconds / 86400} day${seconds / 86400 !== 1 ? 's' : ''}`;
+    if (seconds < 2592000) return `${seconds / 604800} week${seconds / 604800 !== 1 ? 's' : ''}`;
+    return `${seconds / 2592000} month${seconds / 2592000 !== 1 ? 's' : ''}`;
+  };
 
   return (
     <div className="card p-8">
-      <h2 className="text-2xl font-bold text-white mb-4 font-display">Configuration Summary</h2>
-      <p className="text-gray-400 mb-6">Review your Rent2Repay configuration before submitting:</p>
+      <h2 className="text-2xl font-bold text-white mb-4 font-display">Review Configuration</h2>
+      <p className="text-gray-400 mb-6">Please review your settings before submitting:</p>
 
       <div className="space-y-4 mb-6">
         <div className="bg-dark-700 rounded-lg p-4 border border-dark-600">
-          <h3 className="text-lg font-semibold text-white mb-3">Configured Tokens</h3>
+          <h3 className="text-lg font-semibold text-white mb-3">Tokens</h3>
           {configuredTokens.map((tokenConfig, index) => {
             const tokenInfo = getTokenInfo(tokenConfig.token);
             return (
@@ -731,6 +1004,11 @@ function SummaryStep({
               </div>
             );
           })}
+        </div>
+
+        <div className="bg-dark-700 rounded-lg p-4 border border-dark-600">
+          <h3 className="text-lg font-semibold text-white mb-2">Repayment Period</h3>
+          <p className="text-gray-300">{formatPeriod(selectedPeriod)}</p>
         </div>
 
         <div className="bg-dark-700 rounded-lg p-4 border border-dark-600">

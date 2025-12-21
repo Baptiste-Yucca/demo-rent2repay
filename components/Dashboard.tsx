@@ -1,13 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAccount, useReadContract } from 'wagmi';
 import { formatUnits } from 'viem';
-import { TOKENS, ERC20_ABI } from '@/constants';
-import WalletConnect from './WalletConnect';
-import { AddressDisplay } from '@/utils/copyAddress';
-import ContractInfo from './ContractInfo';
-import DisconnectButton from './DisconnectButton';
+import { TOKENS, ERC20_ABI, RMM_ABI, RMM_PROXY, RENT2REPAY_ABI } from '@/constants';
 import TokenBalanceTable from './TokenBalanceTable';
 
 interface TokenBalanceData {
@@ -97,6 +93,191 @@ export default function Dashboard() {
     return formatSignificantDigits(formatted);
   };
 
+  // Read Health Factor from RMM Proxy
+  const { data: userAccountData } = useReadContract({
+    address: RMM_PROXY as `0x${string}`,
+    abi: RMM_ABI,
+    functionName: 'getUserAccountData',
+    args: address ? [address] : undefined,
+    query: { enabled: !!address && isConnected },
+  });
+
+  // Format Health Factor (last element of the array, with 2 decimals)
+  const healthFactor = userAccountData && Array.isArray(userAccountData) && userAccountData[5] 
+    ? Number(userAccountData[5] as bigint) / 1e18 
+    : null;
+
+  // Read Reserve Data for USDC and WXDAI
+  const { data: usdcReserveData } = useReadContract({
+    address: RMM_PROXY as `0x${string}`,
+    abi: RMM_ABI,
+    functionName: 'getReserveData',
+    args: [TOKENS.USDC as `0x${string}`],
+  });
+
+  const { data: wxdaiReserveData } = useReadContract({
+    address: RMM_PROXY as `0x${string}`,
+    abi: RMM_ABI,
+    functionName: 'getReserveData',
+    args: [TOKENS.WXDAI as `0x${string}`],
+  });
+
+  // Read Rent2Repay fee configuration
+  const { data: feeConfiguration } = useReadContract({
+    address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
+    abi: RENT2REPAY_ABI,
+    functionName: 'getFeeConfiguration',
+  });
+
+  const { data: daoFeeReductionConfig } = useReadContract({
+    address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
+    abi: RENT2REPAY_ABI,
+    functionName: 'getDaoFeeReductionConfiguration',
+  });
+
+  // Get reduction token address and min amount
+  const reductionTokenAddress = daoFeeReductionConfig && Array.isArray(daoFeeReductionConfig) ? daoFeeReductionConfig[0] : undefined;
+  const minAmount = daoFeeReductionConfig && Array.isArray(daoFeeReductionConfig) ? daoFeeReductionConfig[1] : undefined;
+
+  // Read user's reduction token balance (if connected)
+  const { data: userReductionTokenBalance } = useReadContract({
+    address: reductionTokenAddress as `0x${string}`,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: address ? [address as `0x${string}`] : undefined,
+    query: { enabled: !!address && !!reductionTokenAddress && isConnected },
+  });
+
+  // Check if user is eligible for fee reduction
+  const isUserEligible = useMemo(() => {
+    if (!isConnected || !userReductionTokenBalance || !minAmount) return false;
+    const balance = typeof userReductionTokenBalance === 'bigint' ? userReductionTokenBalance : undefined;
+    if (!balance) return false;
+    return balance >= minAmount;
+  }, [isConnected, userReductionTokenBalance, minAmount]);
+
+  // Typed user reduction token balance
+  const typedUserReductionTokenBalance = useMemo(() => {
+    return userReductionTokenBalance && typeof userReductionTokenBalance === 'bigint' 
+      ? userReductionTokenBalance 
+      : undefined;
+  }, [userReductionTokenBalance]);
+
+  // Calculate borrowing rates
+  const calculateRates = (
+    reserveData: any,
+    feeConfig: any,
+    reductionConfig: any,
+    userBalance: bigint | undefined
+  ): { nominal: number | null; effective: number | null } => {
+    if (!reserveData || !feeConfig) {
+      return { nominal: null, effective: null };
+    }
+
+    // ReserveData structure from ABI (tuple returned as array):
+    // [0: configuration (tuple), 1: liquidityIndex (uint128), 2: currentLiquidityRate (uint128), 
+    //  3: variableBorrowIndex (uint128), 4: currentVariableBorrowRate (uint128), 5: currentStableBorrowRate (uint128), ...]
+    // currentVariableBorrowRate is at index 4
+    let borrowRateRay: bigint | undefined;
+    
+    // Temporary debug to understand data structure (will be removed after fixing)
+    if (process.env.NODE_ENV === 'development' && reserveData) {
+      console.log('ReserveData structure:', {
+        isArray: Array.isArray(reserveData),
+        length: Array.isArray(reserveData) ? reserveData.length : 'N/A',
+        index4: Array.isArray(reserveData) && reserveData.length > 4 ? reserveData[4] : 'N/A',
+        typeIndex4: Array.isArray(reserveData) && reserveData.length > 4 ? typeof reserveData[4] : 'N/A'
+      });
+    }
+    
+    if (Array.isArray(reserveData) && reserveData.length > 4) {
+      const rateValue = reserveData[4];
+      if (rateValue !== null && rateValue !== undefined) {
+        if (typeof rateValue === 'bigint') {
+          borrowRateRay = rateValue;
+        } else if (typeof rateValue === 'number') {
+          borrowRateRay = BigInt(Math.floor(rateValue));
+        } else if (typeof rateValue === 'string') {
+          borrowRateRay = BigInt(rateValue);
+        }
+      }
+    } else if (reserveData && typeof reserveData === 'object' && !Array.isArray(reserveData)) {
+      // Fallback: try to access as object property (in case wagmi returns it differently)
+      if ('currentVariableBorrowRate' in reserveData) {
+        const rateValue = (reserveData as any).currentVariableBorrowRate;
+        if (rateValue !== null && rateValue !== undefined) {
+          if (typeof rateValue === 'bigint') {
+            borrowRateRay = rateValue;
+          } else if (typeof rateValue === 'number') {
+            borrowRateRay = BigInt(Math.floor(rateValue));
+          } else if (typeof rateValue === 'string') {
+            borrowRateRay = BigInt(rateValue);
+          }
+        }
+      }
+    }
+    
+    if (!borrowRateRay) {
+      return { nominal: null, effective: null };
+    }
+
+    // Convert from RAY to nominal rate
+    const nominalRate = Number(borrowRateRay) / 1e27;
+
+    // Calculate user fees with reduction if eligible
+    const feeConfigArray = Array.isArray(feeConfig) ? feeConfig : [feeConfig.daoFees, feeConfig.senderTips];
+    const daoFees = Number(feeConfigArray[0] as bigint);
+    let userFees = daoFees;
+
+    if (reductionConfig && Array.isArray(reductionConfig) && userBalance && minAmount) {
+      const isEligible = userBalance >= minAmount;
+      if (isEligible) {
+        const reductionRateBPS = Number(reductionConfig[2] as bigint);
+        const reductionPercentage = reductionRateBPS / 10000;
+        userFees = daoFees * (1 - reductionPercentage);
+      }
+    }
+
+    const senderTips = Number(feeConfigArray[1] as bigint);
+    const totalFeesBPS = userFees + senderTips;
+    const feesPercentage = totalFeesBPS / 10000;
+
+    // Prevent division by zero or negative
+    if (feesPercentage >= 1) {
+      return { nominal: nominalRate, effective: null };
+    }
+
+    // Calculate effective rate: taux effectif = taux nominal / (1 - frais)
+    const effectiveRate = nominalRate / (1 - feesPercentage);
+
+    return { nominal: nominalRate, effective: effectiveRate };
+  };
+
+  // Calculate rates for USDC and WXDAI
+  const usdcRates = useMemo(() => {
+    return calculateRates(
+      usdcReserveData,
+      feeConfiguration,
+      daoFeeReductionConfig,
+      typedUserReductionTokenBalance
+    );
+  }, [usdcReserveData, feeConfiguration, daoFeeReductionConfig, typedUserReductionTokenBalance]);
+
+  const wxdaiRates = useMemo(() => {
+    return calculateRates(
+      wxdaiReserveData,
+      feeConfiguration,
+      daoFeeReductionConfig,
+      typedUserReductionTokenBalance
+    );
+  }, [wxdaiReserveData, feeConfiguration, daoFeeReductionConfig, typedUserReductionTokenBalance]);
+
+  // Format rate as percentage
+  const formatRate = (rate: number | null): string => {
+    if (rate === null || rate === undefined || isNaN(rate)) return '—';
+    return `${(rate * 100).toFixed(4)}%`;
+  };
+
   const usdcData = [
     { label: 'USDC', balance: usdcBalance, decimals: 6 },
     { label: 'ARMM_USDC', balance: armmUsdcBalance, decimals: 6 },
@@ -108,20 +289,6 @@ export default function Dashboard() {
     { label: 'ARMM_WXDAI', balance: armmWxdaiBalance, decimals: 18 },
     { label: 'DEBT_WXDAI', balance: debtWxdaiBalance, decimals: 18 },
   ];
-
-  // Composant factorisé pour l'affichage du wallet connecté (comportement prévu)
-  const WalletSection = () => {
-    return (
-      <div className="bg-dark-700 rounded-lg p-4 border border-dark-600 hover:border-primary-500/30 transition-colors">
-        <h2 className="text-sm font-semibold text-gray-200 mb-2 font-display">
-          Connected Wallet
-        </h2>
-        <div className="text-xs text-gray-300">
-          <AddressDisplay address={address} label="wallet-address" color="text-primary-500" showFullAddress={false} />
-        </div>
-      </div>
-    );
-  };
 
   if (!mounted) {
     return (
@@ -136,15 +303,6 @@ export default function Dashboard() {
     );
   }
 
-  // Cas non prévu : utilisateur non connecté - afficher uniquement WalletConnect
-  if (!isConnected) {
-    return (
-      <div className="w-full flex flex-col h-full">
-        <WalletConnect />
-      </div>
-    );
-  }
-
   // Comportement prévu : utilisateur connecté - afficher le Check RMM
   return (
     <div className="w-full flex flex-col h-full">
@@ -153,24 +311,86 @@ export default function Dashboard() {
           Check RMM
         </h1>
         <p className="text-gray-400 text-sm mb-4">RMM Token Balances</p>
-        <div className="space-y-4">
-          <WalletSection />
+        
+        {/* Health Factor */}
+        {isConnected && (
+          <div className="mb-6 bg-dark-700 rounded-lg p-4 border border-dark-600 hover:border-primary-500/30 transition-colors">
+            <h2 className="text-sm font-semibold text-gray-200 mb-2 font-display">
+              Health Factor
+            </h2>
+            <div className="text-2xl font-bold text-primary-400">
+              {healthFactor !== null ? healthFactor.toFixed(2) : 'Loading...'}
+            </div>
+          </div>
+        )}
+
+        {/* Borrowing Rates */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-200 font-display">
+              Borrowing Rates
+            </h2>
+            {isUserEligible && (
+              <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-green-500/20 text-green-400 border border-green-500/30">
+                ✓ Fee reduction applied
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* USDC Borrowing Rate */}
+            <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+              <h3 className="text-md font-semibold text-gray-200 mb-4">USDC Borrowing Rate</h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Nominal Rate</p>
+                  <p className="text-xl font-bold text-blue-400">
+                    {formatRate(usdcRates.nominal)}
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-dark-600">
+                  <p className="text-xs text-gray-400 mb-1">Effective Rate (with R2R fees)</p>
+                  <p className="text-xl font-bold text-primary-400">
+                    {formatRate(usdcRates.effective)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* WXDAI Borrowing Rate */}
+            <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
+              <h3 className="text-md font-semibold text-gray-200 mb-4">WXDAI Borrowing Rate</h3>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Nominal Rate</p>
+                  <p className="text-xl font-bold text-blue-400">
+                    {formatRate(wxdaiRates.nominal)}
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-dark-600">
+                  <p className="text-xs text-gray-400 mb-1">Effective Rate (with R2R fees)</p>
+                  <p className="text-xl font-bold text-primary-400">
+                    {formatRate(wxdaiRates.effective)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* USDC and WXDAI Balances on the same line */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TokenBalanceTable 
+            title="USDC Balances" 
+            data={usdcData} 
+            formatBalance={formatBalance}
+          />
+          <TokenBalanceTable 
+            title="WXDAI Balances" 
+            data={wxdaiData} 
+            formatBalance={formatBalance}
+          />
         </div>
       </div>
-
-      <div className="space-y-4">
-        <TokenBalanceTable 
-          title="USDC Balances" 
-          data={usdcData} 
-          formatBalance={formatBalance}
-        />
-        <TokenBalanceTable 
-          title="WXDAI Balances" 
-          data={wxdaiData} 
-          formatBalance={formatBalance}
-        />
-      </div>
-
     </div>
   );
 }

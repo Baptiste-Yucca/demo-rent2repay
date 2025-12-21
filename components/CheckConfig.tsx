@@ -13,6 +13,25 @@ interface UserConfig {
   maxAmounts: bigint[];
 }
 
+// Format period in human-readable format
+const formatPeriod = (seconds: bigint | undefined): string => {
+  if (!seconds || seconds === BigInt(0)) return 'Not set';
+  
+  const totalSeconds = Number(seconds);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+  if (hours > 0) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+  if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+  if (secs > 0) parts.push(`${secs} second${secs > 1 ? 's' : ''}`);
+  
+  return parts.length > 0 ? parts.join(', ') : '0 seconds';
+};
+
 // Component for individual token info
 const TokenInfo = ({ 
   tokenAddress, 
@@ -26,15 +45,12 @@ const TokenInfo = ({
   tokenInfo: TokenInfo;
 }) => {
   // Get token balance
-  console.log('tokenAddress', tokenAddress);
-  console.log('userAddress', userAddress);
   const { data: balance } = useReadContract({
     address: tokenAddress as `0x${string}`,
     abi: ERC20_ABI,
     functionName: 'balanceOf',
     args: [userAddress as `0x${string}`],
   });
-  console.log('balance', balance);
 
   // Get token allowance
   const { data: allowance } = useReadContract({
@@ -60,33 +76,89 @@ const TokenInfo = ({
     },
   });
 
+  // Calculate minimum of R2R config, balance, and debt
+  const r2rAmount = amount;
+  const userBalance = balance && typeof balance === 'bigint' ? balance : BigInt(0);
+  const debt = debtBalance && typeof debtBalance === 'bigint' ? debtBalance : BigInt(0);
+  const minimum = r2rAmount < userBalance 
+    ? (r2rAmount < debt ? r2rAmount : debt)
+    : (userBalance < debt ? userBalance : debt);
+
+  // Check if approval is sufficient (approval must be >= minimum)
+  const approvalAmount = allowance && typeof allowance === 'bigint' ? allowance : BigInt(0);
+  const hasSufficientApproval = approvalAmount >= minimum;
+  const isApprovalMissing = !allowance || allowance === undefined;
+
   return (
-    <div className="mb-4">
-      <div className="flex items-center mb-2">
-        <span className="text-lg font-semibold text-white">
+    <div className="bg-dark-700 rounded-xl p-6 border border-dark-600 hover:border-primary-500/30 transition-all aspect-square flex flex-col">
+      <div className="flex-1">
+        <h3 className="text-lg font-bold text-white mb-3 font-display">
           {tokenInfo.symbol}
-        </span>
-        <div className="ml-3">
-          <AddressDisplay 
-            address={tokenAddress} 
-            label={`token-${tokenAddress}`} 
-            color="text-gray-400" 
-          />
+        </h3>
+        
+        <div className="space-y-3 mb-4">
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Configured Amount</p>
+            <p className="text-sm font-semibold text-green-400">
+              {formatTokenAmount(r2rAmount, tokenInfo.decimals)} {tokenInfo.symbol}
+            </p>
+          </div>
+          
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Your Balance</p>
+            <p className="text-sm font-semibold text-blue-400">
+              {balance !== undefined && typeof balance === 'bigint' 
+                ? `${formatTokenAmount(balance, tokenInfo.decimals)} ${tokenInfo.symbol}`
+                : 'Loading...'}
+            </p>
+          </div>
+          
+          <div>
+            <p className="text-xs text-gray-400 mb-1">Current Debt</p>
+            <p className="text-sm font-semibold text-red-400">
+              {debtTokenAddress 
+                ? (debtBalance !== undefined && typeof debtBalance === 'bigint' 
+                    ? `${formatTokenAmount(debtBalance, tokenInfo.decimals)} ${tokenInfo.symbol}`
+                    : 'Loading...')
+                : 'N/A'}
+            </p>
+          </div>
+        </div>
+
+        <div className="pt-3 border-t border-dark-600">
+          <p className="text-xs text-gray-400 mb-1">Amount Used On-Chain</p>
+          <p className="text-lg font-bold text-primary-400">
+            {formatTokenAmount(minimum, tokenInfo.decimals)} {tokenInfo.symbol}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            (Minimum of the 3 values above)
+          </p>
         </div>
       </div>
-      <div className="ml-4 space-y-1">
-        <div className="text-sm text-gray-300">
-          <span className="text-green-400">R2R:</span> {formatTokenAmount(amount, tokenInfo.decimals)} {tokenInfo.symbol}
+
+      <div className="mt-4 pt-4 border-t border-dark-600">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs text-gray-400">Approval Status</p>
+          {isApprovalMissing ? (
+            <span className="text-xs font-semibold text-red-400">Missing</span>
+          ) : hasSufficientApproval ? (
+            <span className="text-xs font-semibold text-green-400">✓ Sufficient</span>
+          ) : (
+            <span className="text-xs font-semibold text-yellow-400">⚠ Insufficient</span>
+          )}
         </div>
-        <div className="text-sm text-gray-300">
-          <span className="text-blue-400">Balance:</span> {balance !== undefined && typeof balance === 'bigint' ? formatTokenAmount(balance, tokenInfo.decimals) : 'Loading...'} {tokenInfo.symbol}
-        </div>
-        <div className="text-sm text-gray-300">
-          <span className="text-red-400">Debt:</span> {debtTokenAddress ? (debtBalance !== undefined && typeof debtBalance === 'bigint' ? formatTokenAmount(debtBalance, tokenInfo.decimals) : 'Loading...') : 'N/A'} {tokenInfo.symbol}
-        </div>
-        <div className="text-sm text-gray-300">
-          <span className="text-purple-400">Approval:</span> {allowance !== undefined && typeof allowance === 'bigint' ? formatTokenAmount(allowance, tokenInfo.decimals) : 'Loading...'} {tokenInfo.symbol}
-        </div>
+        <p className="text-xs text-gray-300">
+          Approved: {allowance !== undefined && typeof allowance === 'bigint' 
+            ? formatTokenAmount(allowance, tokenInfo.decimals) 
+            : '0'} {tokenInfo.symbol}
+        </p>
+        {!hasSufficientApproval && (
+          <div className="mt-2 p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400">
+            {isApprovalMissing 
+              ? '⚠ Approval missing - Rent2Repay will not work'
+              : `⚠ Approval insufficient - Need at least ${formatTokenAmount(minimum, tokenInfo.decimals)} ${tokenInfo.symbol}`}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -229,8 +301,8 @@ export default function CheckConfig() {
 
   return (
     <div className="card p-8">
-      <h2 className="text-2xl font-bold text-white mb-2 font-display">Check User Configuration</h2>
-      <p className="text-gray-400 text-sm mb-6">Fill any user address to check their Rent2Repay configuration</p>
+      <h2 className="text-2xl font-bold text-white mb-2 font-display">Check R2R Configuration</h2>
+      <p className="text-gray-400 text-sm mb-6">Enter a user address to view their Rent2Repay configuration and status</p>
       
       <div className="space-y-6">
         {/* Input Section */}
@@ -302,9 +374,9 @@ export default function CheckConfig() {
                       })()}
                     </div>
                     {period !== undefined && typeof period === 'bigint' && (
-                      <div className="text-sm text-gray-400">
-                        <span>Period:</span>{' '}
-                        <span className="font-mono text-orange-400">{period.toString()} seconds</span>
+                      <div className="text-sm">
+                        <span className="text-gray-400">Repayment Period:</span>{' '}
+                        <span className="font-semibold text-orange-400">{formatPeriod(period)}</span>
                       </div>
                     )}
                   </div>
@@ -354,21 +426,79 @@ export default function CheckConfig() {
               ) : null}
             </div>
             
-            <div className="bg-dark-700 rounded-lg p-6 border border-dark-600 hover:border-primary-500/30 transition-colors">
-              {userConfig.tokens.map((tokenAddress, index) => {
-                const tokenInfo = getTokenInfo(tokenAddress);
-                const amount = userConfig.maxAmounts[index];
-                
-                return (
-                  <TokenInfo
-                    key={tokenAddress}
-                    tokenAddress={tokenAddress}
-                    amount={amount}
-                    userAddress={userAddress}
-                    tokenInfo={tokenInfo}
-                  />
-                );
-              })}
+            {/* Token Cards Grid */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-200 mb-4">
+                Configured Tokens
+              </h3>
+              {userConfig.tokens.length === 1 ? (
+                <div className="flex justify-start">
+                  <div className="w-full max-w-sm">
+                    {userConfig.tokens.map((tokenAddress, index) => {
+                      const tokenInfo = getTokenInfo(tokenAddress);
+                      const amount = userConfig.maxAmounts[index];
+                      return (
+                        <TokenInfo
+                          key={tokenAddress}
+                          tokenAddress={tokenAddress}
+                          amount={amount}
+                          userAddress={userAddress}
+                          tokenInfo={tokenInfo}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : userConfig.tokens.length === 2 ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {userConfig.tokens.map((tokenAddress, index) => {
+                    const tokenInfo = getTokenInfo(tokenAddress);
+                    const amount = userConfig.maxAmounts[index];
+                    return (
+                      <TokenInfo
+                        key={tokenAddress}
+                        tokenAddress={tokenAddress}
+                        amount={amount}
+                        userAddress={userAddress}
+                        tokenInfo={tokenInfo}
+                      />
+                    );
+                  })}
+                </div>
+              ) : userConfig.tokens.length === 3 ? (
+                <div className="grid grid-cols-3 gap-4">
+                  {userConfig.tokens.map((tokenAddress, index) => {
+                    const tokenInfo = getTokenInfo(tokenAddress);
+                    const amount = userConfig.maxAmounts[index];
+                    return (
+                      <TokenInfo
+                        key={tokenAddress}
+                        tokenAddress={tokenAddress}
+                        amount={amount}
+                        userAddress={userAddress}
+                        tokenInfo={tokenInfo}
+                      />
+                    );
+                  })}
+                  <div className="bg-dark-700 rounded-xl border border-dark-600 aspect-square"></div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {userConfig.tokens.map((tokenAddress, index) => {
+                    const tokenInfo = getTokenInfo(tokenAddress);
+                    const amount = userConfig.maxAmounts[index];
+                    return (
+                      <TokenInfo
+                        key={tokenAddress}
+                        tokenAddress={tokenAddress}
+                        amount={amount}
+                        userAddress={userAddress}
+                        tokenInfo={tokenInfo}
+                      />
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {userConfig.tokens.length === 0 && (
@@ -390,15 +520,13 @@ export default function CheckConfig() {
 
         {/* Instructions */}
         <div className="mt-6 p-6 bg-dark-700 rounded-lg border border-dark-600">
-          <h4 className="text-sm font-semibold text-gray-200 mb-2">Instructions</h4>
+          <h4 className="text-sm font-semibold text-gray-200 mb-2">How it works</h4>
           <div className="text-xs text-gray-400 space-y-1">
-            <p>• Enter a user address to check their Rent2Repay configuration</p>
-            <p>• <strong>Last Repay</strong>: Timestamp of the last repayment executed</p>
-            <p>• <strong>Period</strong>: Period in seconds for the repayment cycle</p>
-            <p>• <strong>R2R</strong>: Maximum amount configured for each token</p>
-            <p>• <strong>Balance</strong>: Current token balance of the user</p>
-            <p>• <strong>Approval</strong>: Approved amount for Rent2Repay contract</p>
-            <p>• <strong>Debt</strong>: Current debt amount for the associated debt token</p>
+            <p>• <strong>Configured Amount</strong>: Maximum amount set in Rent2Repay configuration</p>
+            <p>• <strong>Your Balance</strong>: Current token balance in your wallet</p>
+            <p>• <strong>Current Debt</strong>: Outstanding debt for this token</p>
+            <p>• <strong>Amount Used On-Chain</strong>: The minimum of the 3 values above (this is what will be used)</p>
+            <p>• <strong>Approval Status</strong>: Must be equal or higher than the amount used on-chain for Rent2Repay to work</p>
           </div>
         </div>
       </div>
