@@ -103,9 +103,23 @@ export default function Dashboard() {
   });
 
   // Format Health Factor (last element of the array, with 2 decimals)
-  const healthFactor = userAccountData && Array.isArray(userAccountData) && userAccountData[5] 
-    ? Number(userAccountData[5] as bigint) / 1e18 
+  // getUserAccountData returns: [totalCollateralBase, totalDebtBase, availableBorrowsBase, currentLiquidationThreshold, ltv, healthFactor]
+  const healthFactorRaw = userAccountData && Array.isArray(userAccountData) && userAccountData[5] 
+    ? Number(userAccountData[5] as bigint) / 1e18
     : null;
+  const totalDebtBase = userAccountData && Array.isArray(userAccountData) && userAccountData[1]
+    ? userAccountData[1] as bigint
+    : null;
+  
+  // Check if there's no debt (USDC and WXDAI debt balances are 0, or totalDebtBase is 0)
+  const hasNoDebt = (
+    (debtUsdcBalance === undefined || debtUsdcBalance === BigInt(0)) &&
+    (debtWxdaiBalance === undefined || debtWxdaiBalance === BigInt(0))
+  ) || (totalDebtBase !== null && totalDebtBase === BigInt(0));
+  
+  // Display infinity if Health Factor > 10 or no debt
+  const shouldShowInfinity = healthFactorRaw !== null && (healthFactorRaw > 10 || hasNoDebt);
+  const healthFactor = shouldShowInfinity ? Infinity : healthFactorRaw;
 
   // Read Reserve Data for USDC and WXDAI
   const { data: usdcReserveData } = useReadContract({
@@ -319,7 +333,7 @@ export default function Dashboard() {
               Health Factor
             </h2>
             <div className="text-2xl font-bold text-primary-400">
-              {healthFactor !== null ? healthFactor.toFixed(2) : 'Loading...'}
+              {healthFactor === null ? 'Loading...' : healthFactor === Infinity ? '∞' : healthFactor.toFixed(2)}
             </div>
           </div>
         )}
