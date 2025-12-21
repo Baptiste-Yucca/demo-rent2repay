@@ -8,6 +8,7 @@ import WalletConnect from './WalletConnect';
 import { AddressDisplay } from '@/utils/copyAddress';
 import ContractInfo from './ContractInfo';
 import DisconnectButton from './DisconnectButton';
+import TokenBalanceTable from './TokenBalanceTable';
 
 interface TokenBalanceData {
   balance: bigint | undefined;
@@ -144,79 +145,32 @@ export default function Dashboard() {
     );
   }
 
-  // Comportement prévu : utilisateur connecté - afficher le Dashboard complet
+  // Comportement prévu : utilisateur connecté - afficher le Check RMM
   return (
     <div className="w-full flex flex-col h-full">
       <div className="card p-6 mb-6">
         <h1 className="text-2xl font-bold text-white mb-2 font-display">
-          Dashboard
+          Check RMM
         </h1>
-        <p className="text-primary-500 font-semibold text-xs mb-4">WALLET INFORMATION</p>
-        
+        <p className="text-gray-400 text-sm mb-4">RMM Token Balances</p>
         <div className="space-y-4">
           <WalletSection />
         </div>
       </div>
 
       <div className="space-y-4">
-        <div className="card p-4">
-          <h3 className="text-lg font-semibold text-white mb-3 font-display">
-            USDC Balances
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-dark-600">
-                  <th className="text-left py-2 px-3 text-gray-300 font-semibold">Token</th>
-                  <th className="text-right py-2 px-3 text-gray-300 font-semibold">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usdcData.map((item, index) => (
-                  <tr key={index} className="border-b border-dark-600/50">
-                    <td className="py-2 px-3 text-gray-400">{item.label}</td>
-                    <td className="py-2 px-3 text-right font-mono text-primary-500">
-                      {formatBalance(item.balance, item.decimals)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="card p-4">
-          <h3 className="text-lg font-semibold text-white mb-3 font-display">
-            WXDAI Balances
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-dark-600">
-                  <th className="text-left py-2 px-3 text-gray-300 font-semibold">Token</th>
-                  <th className="text-right py-2 px-3 text-gray-300 font-semibold">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {wxdaiData.map((item, index) => (
-                  <tr key={index} className="border-b border-dark-600/50">
-                    <td className="py-2 px-3 text-gray-400">{item.label}</td>
-                    <td className="py-2 px-3 text-right font-mono text-primary-500">
-                      {formatBalance(item.balance, item.decimals)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <TokenBalanceTable 
+          title="USDC Balances" 
+          data={usdcData} 
+          formatBalance={formatBalance}
+        />
+        <TokenBalanceTable 
+          title="WXDAI Balances" 
+          data={wxdaiData} 
+          formatBalance={formatBalance}
+        />
       </div>
 
-      {/* Bottom section with ContractInfo and Disconnect */}
-      <div className="mt-auto pt-6 space-y-4 border-t border-dark-600">
-        <ContractInfo showAddress={true} />
-        <DisconnectButton />
-      </div>
     </div>
   );
 }

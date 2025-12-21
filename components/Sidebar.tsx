@@ -2,7 +2,7 @@
 
 import React, { useState, createContext, useContext } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Dashboard from './Dashboard';
+import SidebarNavigation from './SidebarNavigation';
 
 interface SidebarContextType {
   isOpen: boolean;
@@ -46,7 +46,7 @@ export default function Sidebar({ defaultOpen = true, children }: SidebarProps) 
           `}
         >
           <div className={`h-full flex flex-col overflow-y-auto ${isOpen ? 'p-4' : 'hidden'}`}>
-            <Dashboard />
+            <SidebarNavigation />
           </div>
         </aside>
 
