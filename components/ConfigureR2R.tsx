@@ -415,7 +415,7 @@ function TokenSelectionModal({
   currentIndex: number;
   onContinueToTimestamp: () => void;
 }) {
-  const [selectedToken, setSelectedToken] = useState(REPAYMENT_TOKENS[0].address);
+  const [selectedToken, setSelectedToken] = useState<string>(REPAYMENT_TOKENS[0].address);
   const [amount, setAmount] = useState('');
   const [justConfigured, setJustConfigured] = useState(false);
   const [lastConfiguredToken, setLastConfiguredToken] = useState<{ token: string; amount: string } | null>(null);
@@ -719,7 +719,8 @@ function TokenApprovalItem({
 
   const tokenInfo = getTokenInfo(tokenConfig.token);
   const requiredAmount = parseUnits(tokenConfig.amount || '0', tokenInfo.decimals);
-  const needsApproval = !allowance || allowance < requiredAmount;
+  const allowanceBigInt = allowance && typeof allowance === 'bigint' ? allowance : BigInt(0);
+  const needsApproval = !allowance || allowanceBigInt < requiredAmount;
 
   useEffect(() => {
     onApprovalStatus(needsApproval);

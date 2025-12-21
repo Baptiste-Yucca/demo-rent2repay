@@ -185,11 +185,11 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
     <div className="space-y-6">
       {/* Contract Status */}
       <div className="bg-dark-700 rounded-lg p-6 border border-dark-600">
-        <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">État du contrat</h3>
+        <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Contract Status</h3>
         <div className="flex items-center gap-3">
           <div className={`w-3 h-3 rounded-full ${isPaused ? 'bg-red-500' : 'bg-green-500'}`}></div>
           <span className="text-gray-300">
-            {isPaused === undefined ? 'Chargement...' : isPaused ? 'Contrat en pause' : 'Contrat actif'}
+            {isPaused === undefined ? 'Loading...' : isPaused ? 'Contract paused' : 'Contract active'}
           </span>
         </div>
       </div>
@@ -197,29 +197,29 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
       {/* EMERGENCY: Pause */}
       {userRole?.role === UserRole.EMERGENCY && (
         <div className="bg-dark-700 rounded-lg p-6 border border-dark-600">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Contrôle d'urgence</h3>
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Emergency Control</h3>
           {isPaused === undefined ? (
-            <p className="text-gray-400 text-sm">Chargement de l'état...</p>
+            <p className="text-gray-400 text-sm">Loading status...</p>
           ) : isPaused ? (
             <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4">
               <p className="text-yellow-200 text-sm font-semibold mb-2">
-                ⚠️ Le contrat est déjà en pause
+                ⚠️ Contract is already paused
               </p>
               <p className="text-yellow-300/80 text-xs">
-                Le contrat est actuellement en pause. Seul un administrateur peut reprendre le contrat.
+                The contract is currently paused. Only an administrator can resume the contract.
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               <p className="text-gray-400 text-sm mb-4">
-                Mettre en pause le contrat empêchera toutes les opérations Rent2Repay jusqu'à ce qu'un administrateur le reprenne.
+                Pausing the contract will prevent all Rent2Repay operations until an administrator resumes it.
               </p>
               <button
                 onClick={handlePause}
                 disabled={isPending}
                 className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isPending ? 'Mise en pause...' : 'Mettre en pause le contrat'}
+                {isPending ? 'Pausing...' : 'Pause Contract'}
               </button>
             </div>
           )}
@@ -229,29 +229,29 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
       {/* ADMIN: Unpause */}
       {userRole?.role === UserRole.ADMIN && (
         <div className="bg-dark-700 rounded-lg p-6 border border-dark-600">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Reprendre le contrat</h3>
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Resume Contract</h3>
           <p className="text-gray-400 text-sm mb-4">
-            En tant qu'administrateur, vous pouvez reprendre le contrat après qu'il ait été mis en pause par un rôle d'urgence.
+            As an administrator, you can resume the contract after it has been paused by an emergency role.
           </p>
           {isPaused === undefined ? (
-            <p className="text-gray-400 text-sm">Chargement de l'état...</p>
+            <p className="text-gray-400 text-sm">Loading status...</p>
           ) : !isPaused ? (
             <div className="bg-green-900/30 border border-green-600/50 rounded-lg p-4">
               <p className="text-green-200 text-sm font-semibold">
-                ✓ Le contrat est actif
+                ✓ Contract is active
               </p>
               <p className="text-green-300/80 text-xs mt-1">
-                Aucune action nécessaire. Le contrat fonctionne normalement.
+                No action needed. The contract is functioning normally.
               </p>
             </div>
           ) : (
             <div className="space-y-3">
               <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4 mb-4">
                 <p className="text-yellow-200 text-sm font-semibold mb-1">
-                  ⚠️ Contrat en pause
+                  ⚠️ Contract paused
                 </p>
                 <p className="text-yellow-300/80 text-xs">
-                  Le contrat a été mis en pause. Vous pouvez le reprendre pour permettre à nouveau toutes les opérations Rent2Repay.
+                  The contract has been paused. You can resume it to allow all Rent2Repay operations again.
                 </p>
               </div>
               <button
@@ -259,7 +259,7 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
                 disabled={isPending}
                 className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isPending ? 'Reprise en cours...' : 'Reprendre le contrat'}
+                {isPending ? 'Resuming...' : 'Resume Contract'}
               </button>
             </div>
           )}
@@ -269,14 +269,14 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
       {/* OPERATOR: Revoke User Config */}
       {userRole?.role === UserRole.OPERATOR && (
         <div className="bg-dark-700 rounded-lg p-6 border border-dark-600">
-          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Révoquer la configuration d'un utilisateur</h3>
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Revoke User Configuration</h3>
           <p className="text-gray-400 text-sm mb-4">
-            Révoquer toutes les configurations Rent2Repay d'un utilisateur spécifique. Cette action supprimera toutes les configurations de tokens pour l'utilisateur sélectionné.
+            Revoke all Rent2Repay configurations for a specific user. This action will remove all token configurations for the selected user.
           </p>
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Adresse de l'utilisateur à révoquer
+                User address to revoke
               </label>
               <input
                 type="text"
@@ -293,12 +293,12 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
               />
               {removeUserAddress && !isValidAddress(removeUserAddress) && (
                 <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
-                  <span>✗</span> Adresse invalide
+                  <span>✗</span> Invalid address
                 </p>
               )}
               {removeUserAddress && isValidAddress(removeUserAddress) && (
                 <p className="text-green-400 text-xs mt-1 flex items-center gap-1">
-                  <span>✓</span> Adresse valide
+                  <span>✓</span> Valid address
                 </p>
               )}
             </div>
@@ -307,10 +307,10 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
               disabled={isPending || !removeUserAddress || !isValidAddress(removeUserAddress)}
               className="w-full px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isPending ? 'Traitement...' : 'Révoquer la configuration'}
+              {isPending ? 'Processing...' : 'Revoke Configuration'}
             </button>
             <p className="text-xs text-gray-500 mt-2">
-              Fonction: <code className="bg-dark-900 px-2 py-1 rounded text-gray-400">removeUser(address)</code>
+              Function: <code className="bg-dark-900 px-2 py-1 rounded text-gray-400">removeUser(address)</code>
             </p>
           </div>
         </div>
@@ -319,22 +319,22 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
       {/* Error and Success Messages */}
       {error && (
         <div className="bg-red-900 border border-red-600 rounded-lg p-4">
-          <p className="text-red-200 text-sm font-semibold mb-1">Erreur</p>
-          <p className="text-red-300 text-xs">{error.message || 'Erreur lors de l\'appel du contrat'}</p>
+          <p className="text-red-200 text-sm font-semibold mb-1">Error</p>
+          <p className="text-red-300 text-xs">{error.message || 'Error calling contract'}</p>
         </div>
       )}
       
       {isSuccess && (
         <div className="bg-green-900 border border-green-600 rounded-lg p-4">
-          <p className="text-green-200 text-sm font-semibold">✓ Transaction envoyée avec succès !</p>
+          <p className="text-green-200 text-sm font-semibold">✓ Transaction sent successfully!</p>
         </div>
       )}
 
       {/* Warning */}
       <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4">
-        <h4 className="text-sm font-semibold text-yellow-300 mb-2">⚠️ Avertissement</h4>
+        <h4 className="text-sm font-semibold text-yellow-300 mb-2">⚠️ Warning</h4>
         <p className="text-xs text-yellow-200">
-          Ces actions modifient directement le contrat. Assurez-vous de bien comprendre les conséquences avant d'exécuter ces fonctions.
+          These actions directly modify the contract. Make sure you understand the consequences before executing these functions.
         </p>
       </div>
     </div>

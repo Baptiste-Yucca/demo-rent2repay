@@ -21,7 +21,7 @@ const formatSignificantDigits = (value: string): string => {
   const factor = Math.pow(10, 2 - magnitude - 1);
   const rounded = Math.round(num * factor) / factor;
   
-  // Calculer le nombre de décimales nécessaires
+  // Calculate the number of decimal places needed
   const decimalPlaces = Math.max(0, 2 - magnitude - 1);
   
   return rounded.toFixed(decimalPlaces);
@@ -317,7 +317,7 @@ export default function Dashboard() {
     );
   }
 
-  // Comportement prévu : utilisateur connecté - afficher le Check RMM
+  // Expected behavior: connected user - display Check RMM
   return (
     <div className="w-full flex flex-col h-full">
       <div className="card p-6 mb-6">
