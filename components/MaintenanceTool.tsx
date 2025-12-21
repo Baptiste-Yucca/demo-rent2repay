@@ -123,22 +123,14 @@ export default function MaintenanceTool(): React.ReactElement {
 
 // Component for interactive operator actions
 function OperatorActions({ userRole }: { userRole: { role: UserRole; name: string } | null }) {
-  const [activeAction, setActiveAction] = useState<string | null>(null);
-  
-  // State for batchRent2Repay
-  const [batchUsers, setBatchUsers] = useState('');
-  const [batchToken, setBatchToken] = useState('');
-  
-  // State for authorizeTokenPair
-  const [authToken, setAuthToken] = useState('');
-  const [supplyToken, setSupplyToken] = useState('');
-  const [debtToken, setDebtToken] = useState('');
-  
-  // State for unauthorizeToken
-  const [unauthToken, setUnauthToken] = useState('');
-  
-  // State for removeUser
   const [removeUserAddress, setRemoveUserAddress] = useState('');
+  
+  // Read contract paused state
+  const { data: isPaused } = useReadContract({
+    address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
+    abi: RENT2REPAY_ABI,
+    functionName: 'paused',
+  });
   
   const { writeContract, isPending, isSuccess, error, reset } = useWriteContract();
 
@@ -147,46 +139,33 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
     if (isSuccess) {
       const timer = setTimeout(() => {
         reset();
+        setRemoveUserAddress(''); // Clear input after success
       }, 3000);
       return () => clearTimeout(timer);
     }
   }, [isSuccess, reset]);
 
-  const handleBatchRent2Repay = () => {
-    if (!batchUsers || !batchToken) return;
-    const usersArray = batchUsers.split(',').map(u => u.trim()).filter(Boolean);
+  // Handle pause (EMERGENCY only)
+  const handlePause = () => {
     writeContract({
       address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
       abi: RENT2REPAY_ABI,
-      functionName: 'batchRent2Repay',
-      args: [usersArray as `0x${string}`[], batchToken as `0x${string}`],
+      functionName: 'pause',
+      args: [],
     });
   };
 
-  const handleAuthorizeTokenPair = () => {
-    if (!authToken || !supplyToken || !debtToken) return;
+  // Handle unpause (ADMIN only)
+  const handleUnpause = () => {
     writeContract({
       address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
       abi: RENT2REPAY_ABI,
-      functionName: 'authorizeTokenPair',
-      args: [
-        authToken as `0x${string}`,
-        supplyToken as `0x${string}`,
-        debtToken as `0x${string}`,
-      ],
+      functionName: 'unpause',
+      args: [],
     });
   };
 
-  const handleUnauthorizeToken = () => {
-    if (!unauthToken) return;
-    writeContract({
-      address: process.env.NEXT_PUBLIC_R2R_PROXY as `0x${string}`,
-      abi: RENT2REPAY_ABI,
-      functionName: 'unauthorizeToken',
-      args: [unauthToken as `0x${string}`],
-    });
-  };
-
+  // Handle remove user (OPERATOR only)
   const handleRemoveUser = () => {
     if (!removeUserAddress) return;
     writeContract({
@@ -197,250 +176,163 @@ function OperatorActions({ userRole }: { userRole: { role: UserRole; name: strin
     });
   };
 
-  // Filter and sort actions based on user role and permissions
-  const filteredAndSortedActions = useMemo(() => {
-    const allActions: Array<{
-      id: string;
-      title: string;
-      description: string;
-      signature: string;
-      requiredRoles: UserRole[];
-      component: React.ReactNode;
-    }> = [
-      {
-        id: 'batch',
-        title: 'Batch Rent2Repay',
-        description: 'Effectuer un remboursement en masse pour plusieurs utilisateurs',
-        signature: 'batchRent2Repay(users[], token)',
-        requiredRoles: [], // Available to all
-        component: (
-          <div className="space-y-3">
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">Users (séparés par virgule)</label>
-            <input
-              type="text"
-              value={batchUsers}
-              onChange={(e) => setBatchUsers(e.target.value)}
-              placeholder="0x123...,0x456..."
-              className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded text-sm text-white placeholder-gray-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">Token Address</label>
-            <input
-              type="text"
-              value={batchToken}
-              onChange={(e) => setBatchToken(e.target.value)}
-              placeholder="0x..."
-              className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded text-sm text-white placeholder-gray-500"
-            />
-          </div>
-          <button
-            onClick={handleBatchRent2Repay}
-            disabled={isPending || !batchUsers || !batchToken}
-            className="btn-primary w-full text-sm py-2"
-          >
-            {isPending ? 'Envoi...' : 'Exécuter'}
-          </button>
-        </div>
-      ),
-    },
-      {
-        id: 'authorize',
-        title: 'Authorize Token Pair',
-        description: 'Autoriser un nouveau token pair (supply et debt token)',
-        signature: 'authorizeTokenPair(token, supplyToken, debtToken)',
-        requiredRoles: [], // Available to all
-        component: (
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">Token Address</label>
-            <input
-              type="text"
-              value={authToken}
-              onChange={(e) => setAuthToken(e.target.value)}
-              placeholder="0x..."
-              className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded text-sm text-white placeholder-gray-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">Supply Token Address</label>
-            <input
-              type="text"
-              value={supplyToken}
-              onChange={(e) => setSupplyToken(e.target.value)}
-              placeholder="0x..."
-              className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded text-sm text-white placeholder-gray-500"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">Debt Token Address</label>
-            <input
-              type="text"
-              value={debtToken}
-              onChange={(e) => setDebtToken(e.target.value)}
-              placeholder="0x..."
-              className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded text-sm text-white placeholder-gray-500"
-            />
-          </div>
-          <button
-            onClick={handleAuthorizeTokenPair}
-            disabled={isPending || !authToken || !supplyToken || !debtToken}
-            className="btn-primary w-full text-sm py-2"
-          >
-            {isPending ? 'Envoi...' : 'Exécuter'}
-          </button>
-        </div>
-      ),
-    },
-      {
-        id: 'unauthorize',
-        title: 'Unauthorize Token',
-        description: 'Désactiver un token pair',
-        signature: 'unauthorizeToken(token)',
-        requiredRoles: [], // Available to all
-        component: (
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">Token Address</label>
-            <input
-              type="text"
-              value={unauthToken}
-              onChange={(e) => setUnauthToken(e.target.value)}
-              placeholder="0x..."
-              className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded text-sm text-white placeholder-gray-500"
-            />
-          </div>
-          <button
-            onClick={handleUnauthorizeToken}
-            disabled={isPending || !unauthToken}
-            className="btn-primary w-full text-sm py-2"
-          >
-            {isPending ? 'Envoi...' : 'Exécuter'}
-          </button>
-        </div>
-      ),
-    },
-      {
-        id: 'remove',
-        title: 'Remove User',
-        description: 'Retirer un utilisateur de la configuration Rent2Repay',
-        signature: 'removeUser(user)',
-        requiredRoles: [UserRole.OPERATOR], // Only OPERATOR
-        component: (
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">User Address</label>
-            <input
-              type="text"
-              value={removeUserAddress}
-              onChange={(e) => setRemoveUserAddress(e.target.value)}
-              placeholder="0x..."
-              className="w-full px-3 py-2 bg-dark-800 border border-dark-600 rounded text-sm text-white placeholder-gray-500"
-            />
-          </div>
-          <button
-            onClick={handleRemoveUser}
-            disabled={isPending || !removeUserAddress}
-            className="btn-primary w-full text-sm py-2"
-          >
-            {isPending ? 'Envoi...' : 'Exécuter'}
-          </button>
-        </div>
-      ),
-    },
-  ];
-
-    // Filter actions based on user role
-    const userRoleType = userRole?.role;
-    const filteredActions = allActions.filter(action => {
-      // If no required roles, action is available to all
-      if (action.requiredRoles.length === 0) return true;
-      // If user has no role, filter out restricted actions
-      if (!userRoleType) return false;
-      // Check if user's role is in required roles
-      return action.requiredRoles.includes(userRoleType);
-    });
-
-    // Sort actions: actions available to current role first
-    const sortedActions = [...filteredActions].sort((a, b) => {
-      const aIsAllowed = a.requiredRoles.length === 0 || (userRoleType && a.requiredRoles.includes(userRoleType));
-      const bIsAllowed = b.requiredRoles.length === 0 || (userRoleType && b.requiredRoles.includes(userRoleType));
-      
-      if (aIsAllowed && !bIsAllowed) return -1;
-      if (!aIsAllowed && bIsAllowed) return 1;
-      return 0;
-    });
-
-    return sortedActions;
-  }, [userRole?.role]);
+  // Validate Ethereum address format
+  const isValidAddress = (address: string): boolean => {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
+  };
 
   return (
-    <div className="bg-dark-700 rounded-lg p-6 border border-dark-600">
-      <h3 className="text-lg font-semibold text-gray-200 mb-4">Actions disponibles ({userRole?.name})</h3>
-      
+    <div className="space-y-6">
+      {/* Contract Status */}
+      <div className="bg-dark-700 rounded-lg p-6 border border-dark-600">
+        <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">État du contrat</h3>
+        <div className="flex items-center gap-3">
+          <div className={`w-3 h-3 rounded-full ${isPaused ? 'bg-red-500' : 'bg-green-500'}`}></div>
+          <span className="text-gray-300">
+            {isPaused === undefined ? 'Chargement...' : isPaused ? 'Contrat en pause' : 'Contrat actif'}
+          </span>
+        </div>
+      </div>
+
+      {/* EMERGENCY: Pause */}
+      {userRole?.role === UserRole.EMERGENCY && (
+        <div className="bg-dark-700 rounded-lg p-6 border border-dark-600">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Contrôle d'urgence</h3>
+          {isPaused === undefined ? (
+            <p className="text-gray-400 text-sm">Chargement de l'état...</p>
+          ) : isPaused ? (
+            <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4">
+              <p className="text-yellow-200 text-sm font-semibold mb-2">
+                ⚠️ Le contrat est déjà en pause
+              </p>
+              <p className="text-yellow-300/80 text-xs">
+                Le contrat est actuellement en pause. Seul un administrateur peut reprendre le contrat.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-gray-400 text-sm mb-4">
+                Mettre en pause le contrat empêchera toutes les opérations Rent2Repay jusqu'à ce qu'un administrateur le reprenne.
+              </p>
+              <button
+                onClick={handlePause}
+                disabled={isPending}
+                className="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPending ? 'Mise en pause...' : 'Mettre en pause le contrat'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ADMIN: Unpause */}
+      {userRole?.role === UserRole.ADMIN && (
+        <div className="bg-dark-700 rounded-lg p-6 border border-dark-600">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Reprendre le contrat</h3>
+          <p className="text-gray-400 text-sm mb-4">
+            En tant qu'administrateur, vous pouvez reprendre le contrat après qu'il ait été mis en pause par un rôle d'urgence.
+          </p>
+          {isPaused === undefined ? (
+            <p className="text-gray-400 text-sm">Chargement de l'état...</p>
+          ) : !isPaused ? (
+            <div className="bg-green-900/30 border border-green-600/50 rounded-lg p-4">
+              <p className="text-green-200 text-sm font-semibold">
+                ✓ Le contrat est actif
+              </p>
+              <p className="text-green-300/80 text-xs mt-1">
+                Aucune action nécessaire. Le contrat fonctionne normalement.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4 mb-4">
+                <p className="text-yellow-200 text-sm font-semibold mb-1">
+                  ⚠️ Contrat en pause
+                </p>
+                <p className="text-yellow-300/80 text-xs">
+                  Le contrat a été mis en pause. Vous pouvez le reprendre pour permettre à nouveau toutes les opérations Rent2Repay.
+                </p>
+              </div>
+              <button
+                onClick={handleUnpause}
+                disabled={isPending}
+                className="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPending ? 'Reprise en cours...' : 'Reprendre le contrat'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* OPERATOR: Revoke User Config */}
+      {userRole?.role === UserRole.OPERATOR && (
+        <div className="bg-dark-700 rounded-lg p-6 border border-dark-600">
+          <h3 className="text-lg font-semibold text-gray-200 mb-4 font-display">Révoquer la configuration d'un utilisateur</h3>
+          <p className="text-gray-400 text-sm mb-4">
+            Révoquer toutes les configurations Rent2Repay d'un utilisateur spécifique. Cette action supprimera toutes les configurations de tokens pour l'utilisateur sélectionné.
+          </p>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Adresse de l'utilisateur à révoquer
+              </label>
+              <input
+                type="text"
+                value={removeUserAddress}
+                onChange={(e) => setRemoveUserAddress(e.target.value.trim())}
+                placeholder="0x..."
+                className={`w-full px-4 py-3 bg-dark-800 border rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-colors ${
+                  removeUserAddress && !isValidAddress(removeUserAddress)
+                    ? 'border-red-500 focus:ring-red-500'
+                    : removeUserAddress && isValidAddress(removeUserAddress)
+                    ? 'border-green-500/50 focus:ring-green-500'
+                    : 'border-dark-600 focus:ring-primary-500'
+                }`}
+              />
+              {removeUserAddress && !isValidAddress(removeUserAddress) && (
+                <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
+                  <span>✗</span> Adresse invalide
+                </p>
+              )}
+              {removeUserAddress && isValidAddress(removeUserAddress) && (
+                <p className="text-green-400 text-xs mt-1 flex items-center gap-1">
+                  <span>✓</span> Adresse valide
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleRemoveUser}
+              disabled={isPending || !removeUserAddress || !isValidAddress(removeUserAddress)}
+              className="w-full px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isPending ? 'Traitement...' : 'Révoquer la configuration'}
+            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Fonction: <code className="bg-dark-900 px-2 py-1 rounded text-gray-400">removeUser(address)</code>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Error and Success Messages */}
       {error && (
-        <div className="bg-red-900 border border-red-600 rounded-lg p-3 mb-4">
-          <p className="text-red-200 text-sm">{error.message || 'Erreur lors de l\'appel du contrat'}</p>
+        <div className="bg-red-900 border border-red-600 rounded-lg p-4">
+          <p className="text-red-200 text-sm font-semibold mb-1">Erreur</p>
+          <p className="text-red-300 text-xs">{error.message || 'Erreur lors de l\'appel du contrat'}</p>
         </div>
       )}
       
       {isSuccess && (
-        <div className="bg-green-900 border border-green-600 rounded-lg p-3 mb-4">
-          <p className="text-green-200 text-sm">Transaction envoyée avec succès !</p>
+        <div className="bg-green-900 border border-green-600 rounded-lg p-4">
+          <p className="text-green-200 text-sm font-semibold">✓ Transaction envoyée avec succès !</p>
         </div>
       )}
-      
-      <div className="space-y-3">
-        {filteredAndSortedActions.map((action) => {
-          const isAllowed = action.requiredRoles.length === 0 || (userRole?.role && action.requiredRoles.includes(userRole.role));
-          
-          return (
-          <div key={action.id} className="bg-dark-800 rounded-lg border border-dark-700">
-            <button
-              onClick={() => setActiveAction(activeAction === action.id ? null : action.id)}
-              className="w-full px-4 py-3 flex justify-between items-center text-left hover:bg-dark-700 transition-colors"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-semibold text-gray-300">{action.title}</h4>
-                  {isAllowed && (
-                    <span className="text-xs px-2 py-0.5 bg-green-900 text-green-300 rounded">
-                      Vous pouvez
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-400 mt-1">{action.description}</p>
-              </div>
-              <svg
-                className={`w-5 h-5 text-gray-400 transition-transform ${
-                  activeAction === action.id ? 'rotate-180' : ''
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            
-            {activeAction === action.id && (
-              <div className="px-4 pb-4 border-t border-dark-700 pt-4">
-                <div className="mb-3">
-                  <div className="text-xs text-gray-500 font-mono bg-dark-900 p-2 rounded">
-                    {action.signature}
-                  </div>
-                </div>
-                {action.component}
-              </div>
-            )}
-          </div>
-        );
-        })}
-      </div>
 
-      <div className="mt-6 p-4 bg-yellow-900 border border-yellow-600 rounded-lg">
-        <h4 className="text-sm font-semibold text-yellow-300 mb-2">Note importante</h4>
+      {/* Warning */}
+      <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4">
+        <h4 className="text-sm font-semibold text-yellow-300 mb-2">⚠️ Avertissement</h4>
         <p className="text-xs text-yellow-200">
           Ces actions modifient directement le contrat. Assurez-vous de bien comprendre les conséquences avant d'exécuter ces fonctions.
         </p>

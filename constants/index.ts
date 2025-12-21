@@ -36,6 +36,10 @@ export const DEBT_TOKENS = [
 
 export const REG_TOKEN = '0x0AA1e96D2a46Ec6beB2923dE1E61Addf5F5f1dce';
 
+// RMM Proxy address (fixed, does not change)
+export const RMM_PROXY = '0xFb9b496519fCa8473fba1af0850B6B8F476BFdB3' as const;
+
 // Contract ABI will be imported from the JSON file
 export { default as RENT2REPAY_ABI } from '../ABI/rent2repay.json';
 export { default as ERC20_ABI } from '../ABI/erc20.json';
+export { default as RMM_ABI } from '../ABI/rmm.json';
