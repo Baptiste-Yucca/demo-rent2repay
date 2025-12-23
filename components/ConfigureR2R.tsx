@@ -8,6 +8,7 @@ import { getTokenInfo, formatTokenAmount } from '@/utils/getTokenInfo';
 import { AddressDisplay } from '@/utils/copyAddress';
 import { normalizeAddresses } from '@/utils/addressUtils';
 import { X } from 'lucide-react';
+import { useSidebar } from './Sidebar';
 
 interface TokenConfig {
   token: string;
@@ -415,6 +416,7 @@ function TokenSelectionModal({
   currentIndex: number;
   onContinueToTimestamp: () => void;
 }) {
+  const { isOpen: isSidebarOpen } = useSidebar();
   const [selectedToken, setSelectedToken] = useState<string>(REPAYMENT_TOKENS[0].address);
   const [amount, setAmount] = useState('');
   const [justConfigured, setJustConfigured] = useState(false);
@@ -454,7 +456,10 @@ function TokenSelectionModal({
   if (justConfigured && lastConfiguredToken) {
     const tokenInfo = REPAYMENT_TOKENS.find(t => t.address === lastConfiguredToken.token);
     return (
-      <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div 
+        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+        style={{ left: isSidebarOpen ? '320px' : '0' }}
+      >
         <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold text-white font-display">Token Added</h3>
@@ -511,7 +516,10 @@ function TokenSelectionModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      style={{ left: isSidebarOpen ? '320px' : '0' }}
+    >
       <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white font-display">
@@ -613,11 +621,15 @@ function TimestampSelectionModal({
   onTimeChange: (time: string) => void;
   onClose: () => void;
 }) {
+  const { isOpen: isSidebarOpen } = useSidebar();
   const [useASAP, setUseASAP] = useState(true);
   const minDate = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      style={{ left: isSidebarOpen ? '320px' : '0' }}
+    >
       <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white font-display">When should Rent2Repay start?</h3>
@@ -840,6 +852,7 @@ function PeriodicitySelectionModal({
   onContinue: () => void;
   onBack: () => void;
 }) {
+  const { isOpen: isSidebarOpen } = useSidebar();
   const periodOptions = [
     { label: '5 seconds (minimum)', value: 5 },
     { label: '1 hour', value: 3600 },
@@ -869,7 +882,10 @@ function PeriodicitySelectionModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      style={{ left: isSidebarOpen ? '320px' : '0' }}
+    >
       <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white font-display">Select Repayment Period</h3>
