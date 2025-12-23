@@ -31,11 +31,11 @@ export const formatTokenAmount = (amount: bigint, decimals: number): string => {
 export const getTokenInfo = (tokenAddress: string): TokenInfo => {
   const normalizedTokenAddress = tokenAddress.toLowerCase();
   
-  // Check if it's the REG token (ERR)
+  // Check if it's the REG token
   if (REG_TOKEN.toLowerCase() === normalizedTokenAddress) {
     return {
       address: tokenAddress,
-      symbol: 'ERR',
+      symbol: 'REG',
       decimals: 18,
     };
   }

@@ -238,11 +238,11 @@ export default function ConfigureR2R() {
   // Show existing configuration
   if (hasConfig && userConfig && configStep === 'check') {
     return (
-      <div className="card p-8">
+      <div className="card p-8 flex flex-col items-center">
         <h2 className="text-2xl font-bold text-white mb-2 font-display">Configure R2R</h2>
         <p className="text-gray-400 text-sm mb-6">Your current Rent2Repay configuration</p>
 
-        <div className="space-y-4 mb-6">
+        <div className="space-y-4 mb-6 w-full max-w-2xl">
           {userConfig.tokens.map((tokenAddress, index) => {
             const tokenInfo = getTokenInfo(tokenAddress);
             const amount = userConfig.maxAmounts[index];
@@ -288,7 +288,7 @@ export default function ConfigureR2R() {
   // No configuration - start setup
   if (hasConfig === false && configStep === 'check') {
     return (
-      <div className="card p-8">
+      <div className="card p-8 flex flex-col items-center justify-center text-center">
         <h2 className="text-2xl font-bold text-white mb-2 font-display">Configure R2R</h2>
         <p className="text-gray-400 text-sm mb-6">You don't have a Rent2Repay configuration yet</p>
         <button
@@ -383,7 +383,7 @@ export default function ConfigureR2R() {
   // Complete step
   if (configStep === 'complete') {
     return (
-      <div className="card p-8">
+      <div className="card p-8 flex flex-col items-center justify-center text-center">
         <h2 className="text-2xl font-bold text-white mb-2 font-display">Configuration Complete!</h2>
         {isConfirmed ? (
           <div className="mt-4 p-4 bg-green-500/20 border border-green-500/30 rounded-lg">
@@ -454,7 +454,7 @@ function TokenSelectionModal({
   if (justConfigured && lastConfiguredToken) {
     const tokenInfo = REPAYMENT_TOKENS.find(t => t.address === lastConfiguredToken.token);
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xl font-bold text-white font-display">Token Added</h3>
@@ -512,7 +512,7 @@ function TokenSelectionModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md">
+      <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white font-display">
             {hasAtLeastOne 
@@ -618,7 +618,7 @@ function TimestampSelectionModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md">
+      <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white font-display">When should Rent2Repay start?</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -870,7 +870,7 @@ function PeriodicitySelectionModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md">
+      <div className="bg-dark-800 rounded-lg p-6 border border-dark-600 w-full max-w-md mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-white font-display">Select Repayment Period</h3>
           <button onClick={onBack} className="text-gray-400 hover:text-white">

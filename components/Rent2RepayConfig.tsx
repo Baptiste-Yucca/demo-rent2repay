@@ -200,11 +200,11 @@ export default function Rent2RepayConfig() {
   };
 
   return (
-    <div className="card p-8">
+    <div className="card p-8 flex flex-col items-center">
       <h2 className="text-2xl font-bold text-white mb-6 font-display">Rent2Repay Configuration</h2>
       
       {/* Contract Address - Compact Display */}
-      <div className="mb-6 bg-gradient-to-r from-primary-500/10 to-primary-600/10 rounded-lg p-4 border border-primary-500/30">
+      <div className="mb-6 w-full bg-gradient-to-r from-primary-500/10 to-primary-600/10 rounded-lg p-4 border border-primary-500/30">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
             <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
@@ -242,7 +242,8 @@ export default function Rent2RepayConfig() {
       </div>
 
       {/* Configuration Grid - Square Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <div className="w-full max-w-5xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {/* DAO Fees */}
         <div className="bg-dark-700 rounded-xl p-6 border border-dark-600 hover:border-primary-500/30 transition-all aspect-square flex flex-col justify-between">
           <div>
@@ -378,12 +379,6 @@ export default function Rent2RepayConfig() {
           <p className="text-xs text-gray-500">Additional fees for senders</p>
         </div>
       </div>
-
-      {/* Info Box */}
-      <div className="bg-dark-700/50 rounded-xl p-4 border border-dark-600">
-        <p className="text-xs text-gray-400">
-          <strong className="text-gray-300">BPS (Basis Points):</strong> 1 BPS = 0.01%. All fees and reductions are expressed in basis points.
-        </p>
       </div>
     </div>
   );

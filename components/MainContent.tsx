@@ -45,7 +45,7 @@ export default function MainContent({ children }: MainContentProps) {
         ${isOpen ? 'ml-80' : 'ml-0'}
       `}
     >
-      <div className="max-w-6xl mx-auto px-4 py-8 w-full">
+      <div className="max-w-6xl mx-auto px-4 py-8 w-full relative">
         {children}
         {renderContent()}
       </div>
