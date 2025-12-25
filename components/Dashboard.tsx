@@ -321,22 +321,19 @@ export default function Dashboard() {
   return (
     <div className="w-full flex flex-col h-full">
       <div className="card p-6 mb-6">
-        <h1 className="text-2xl font-bold text-white mb-2 font-display">
-          Check RMM
-        </h1>
-        <p className="text-gray-400 text-sm mb-4">RMM Token Balances</p>
-        
-        {/* Health Factor */}
-        {isConnected && (
-          <div className="mb-6 bg-dark-700 rounded-lg p-4 border border-dark-600 hover:border-primary-500/30 transition-colors">
-            <h2 className="text-sm font-semibold text-gray-200 mb-2 font-display">
-              Health Factor
-            </h2>
-            <div className="text-2xl font-bold text-primary-400">
-              {healthFactor === null ? 'Loading...' : healthFactor === Infinity ? '∞' : healthFactor.toFixed(2)}
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-white font-display">
+            Check RMM
+          </h1>
+          {isConnected && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-gray-300 font-display">Health Factor:</span>
+              <span className="text-2xl font-bold text-primary-400">
+                {healthFactor === null ? 'Loading...' : healthFactor === Infinity ? '∞' : healthFactor.toFixed(2)}
+              </span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Borrowing Rates */}
         <div className="mb-6">
